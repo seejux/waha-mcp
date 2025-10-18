@@ -8,14 +8,6 @@ A Model Context Protocol (MCP) server that enables AI assistants to interact wit
 - **Message Operations**: Retrieve, send, and mark messages as read
 - **MCP Integration**: Full compatibility with MCP clients like Claude Desktop
 
-## Quick Start
-
-**New users? Start here:** [QUICK_START.md](QUICK_START.md)
-
-**Adding to Claude Code?** [CLAUDE_CODE_SETUP.md](CLAUDE_CODE_SETUP.md)
-
-**Detailed usage?** [USAGE_GUIDE.md](USAGE_GUIDE.md)
-
 ## Installation
 
 1. Clone this repository
@@ -177,20 +169,6 @@ waha-mcp-server/
 ├── tsconfig.json
 └── PROJECT_SPEC.md          # Full project specification
 ```
-
-## Development Status
-
-- [x] Phase 1: Project Foundation & Setup
-- [x] Phase 2: WAHA API Client Layer
-- [x] Phase 3: MCP Tools Implementation - Core Chat Operations
-- [ ] Phase 4: MCP Resources (Optional)
-- [ ] Phase 5: Testing & Documentation
-- [ ] Phase 6: Advanced Features
-
-**Current Status:** All 4 core tools are fully implemented and functional!
-
-See [PROJECT_SPEC.md](PROJECT_SPEC.md) for detailed development roadmap.
-
 ## Chat ID Format
 
 WhatsApp chat IDs have specific formats:
