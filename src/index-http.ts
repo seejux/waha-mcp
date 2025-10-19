@@ -18,9 +18,6 @@ import cors from "cors";
 import { randomUUID } from "node:crypto";
 import type { Request, Response } from "express";
 
-// Store active transports by session ID
-const transports: Record<string, StreamableHTTPServerTransport> = {};
-
 // Get port from environment or use default
 const MCP_PORT = process.env.MCP_PORT ? parseInt(process.env.MCP_PORT) : 3001;
 
@@ -328,6 +325,7 @@ app.use((req, _res, next) => {
     'mcp-session-id': req.headers['mcp-session-id'],
     'user-agent': req.headers['user-agent']
   });
+  console.log(`  req.body type: ${typeof req.body}, is object: ${typeof req.body === 'object'}, keys: ${req.body ? Object.keys(req.body).length : 'N/A'}`);
   if (req.body && Object.keys(req.body).length > 0) {
     console.log(`  Body:`, JSON.stringify(req.body).substring(0, 200));
   }
@@ -342,100 +340,53 @@ app.get('/health', (_req, res) => {
 
 // Handle POST requests (client-to-server messages)
 app.post('/mcp', async (req: Request, res: Response) => {
-  const sessionId = req.headers['mcp-session-id'] as string;
-
   console.log('[MCP POST] Incoming request');
-  console.log(`  Session ID: ${sessionId || '(new session)'}`);
+  console.log(`  Body type: ${typeof req.body}`);
+  console.log(`  Body value: ${JSON.stringify(req.body)?.substring(0, 100)}`);
   console.log(`  Method: ${req.body?.method || 'unknown'}`);
   console.log(`  Request ID: ${req.body?.id || 'unknown'}`);
 
-  // Get or create transport for this session
-  let transport = sessionId ? transports[sessionId] : undefined;
+  try {
+    // STATELESS MODE: Create a new transport for each request to prevent
+    // request ID collisions. Different clients may use the same JSON-RPC request IDs,
+    // which would cause responses to be routed to the wrong HTTP connections if
+    // the transport state is shared.
+    console.log('[MCP POST] Creating new stateless transport');
 
-  if (!transport) {
-    console.log('[MCP POST] Creating new transport for new session');
-
-    // Create new transport for new session
-    transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: () => randomUUID(),
-      onsessioninitialized: (newSessionId) => {
-        console.log(`[MCP Session] Initialized: ${newSessionId}`);
-        transports[newSessionId] = transport!;
-      },
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined,  // Stateless mode
+      enableJsonResponse: true         // Use JSON responses instead of SSE
     });
 
-    // Setup close handler
-    transport.onclose = () => {
-      const sid = transport!.sessionId;
-      if (sid && transports[sid]) {
-        console.log(`[MCP Session] Closed: ${sid}`);
-        delete transports[sid];
-      }
-    };
+    res.on('close', () => {
+      transport.close();
+    });
 
-    // Connect to server
     const server = createServer();
     await server.connect(transport);
     console.log('[MCP POST] Server connected to transport');
-  } else {
-    console.log(`[MCP POST] Using existing transport for session ${sessionId}`);
-  }
 
-  // Handle the request with parsed body (CRITICAL: pass req.body as third parameter)
-  try {
+    // Pass the pre-parsed body from express.json() middleware
+    console.log(`[MCP POST] Passing parsedBody to handleRequest: ${req.body !== undefined}`);
     await transport.handleRequest(req, res, req.body);
     console.log(`[MCP POST] Request handled successfully`);
   } catch (error) {
     console.error('[MCP POST] Error handling request:', error);
-    throw error;
+    if (!res.headersSent) {
+      res.status(500).json({
+        jsonrpc: '2.0',
+        error: {
+          code: -32603,
+          message: 'Internal server error'
+        },
+        id: null
+      });
+    }
   }
 });
 
-// Handle GET requests (server-to-client event streams)
-app.get('/mcp', async (req: Request, res: Response) => {
-  const sessionId = req.headers['mcp-session-id'] as string;
-
-  console.log('[MCP GET] SSE stream request');
-  console.log(`  Session ID: ${sessionId || '(missing)'}`);
-
-  if (!sessionId || !transports[sessionId]) {
-    console.error('[MCP GET] Invalid or missing session ID');
-    res.status(400).send('Invalid or missing session ID');
-    return;
-  }
-
-  console.log(`[MCP GET] Opening SSE stream for session ${sessionId}`);
-  try {
-    await transports[sessionId].handleRequest(req, res);
-    console.log(`[MCP GET] SSE stream closed for session ${sessionId}`);
-  } catch (error) {
-    console.error('[MCP GET] Error handling SSE stream:', error);
-    throw error;
-  }
-});
-
-// Handle DELETE requests (session termination)
-app.delete('/mcp', async (req: Request, res: Response) => {
-  const sessionId = req.headers['mcp-session-id'] as string;
-
-  console.log('[MCP DELETE] Session termination request');
-  console.log(`  Session ID: ${sessionId || '(missing)'}`);
-
-  if (!sessionId || !transports[sessionId]) {
-    console.error('[MCP DELETE] Invalid or missing session ID');
-    res.status(400).send('Invalid or missing session ID');
-    return;
-  }
-
-  console.log(`[MCP DELETE] Terminating session: ${sessionId}`);
-  try {
-    await transports[sessionId].handleRequest(req, res);
-    console.log(`[MCP DELETE] Session terminated successfully: ${sessionId}`);
-  } catch (error) {
-    console.error('[MCP DELETE] Error terminating session:', error);
-    throw error;
-  }
-});
+// Note: GET and DELETE endpoints are not needed in stateless mode with enableJsonResponse: true
+// All communication happens via POST requests with JSON responses
 
 // Start server
 app.listen(MCP_PORT, () => {
@@ -452,16 +403,6 @@ app.listen(MCP_PORT, () => {
 
 // Handle shutdown
 process.on('SIGINT', async () => {
-  console.log('Shutting down server...');
-
-  for (const sessionId in transports) {
-    try {
-      await transports[sessionId].close();
-      delete transports[sessionId];
-    } catch (error) {
-      console.error(`Error closing session ${sessionId}:`, error);
-    }
-  }
-
+  console.log('\nShutting down server...');
   process.exit(0);
 });
