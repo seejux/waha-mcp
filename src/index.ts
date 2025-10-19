@@ -5,6 +5,8 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
+  ListResourcesRequestSchema,
+  ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { config } from "./config.js";
 import { WAHAClient, WAHAError } from "./client/index.js";
@@ -13,6 +15,10 @@ import {
   formatMessages,
   formatSendMessageSuccess,
 } from "./tools/formatters.js";
+import { createResourceManager, ResourceManager } from "./resources/index.js";
+
+// Webhook types (imported conditionally below)
+type WebhookManager = any;
 
 /**
  * WAHA MCP Server
@@ -21,6 +27,8 @@ import {
 class WAHAMCPServer {
   private server: Server;
   private wahaClient: WAHAClient;
+  private resourceManager: ResourceManager;
+  private webhookManager?: WebhookManager;
 
   constructor() {
     // Initialize WAHA API client
@@ -30,6 +38,9 @@ class WAHAMCPServer {
       config.wahaSession
     );
 
+    // Initialize resource manager with caching enabled (5 min TTL)
+    this.resourceManager = createResourceManager(this.wahaClient, true, 300);
+
     this.server = new Server(
       {
         name: "waha-mcp-server",
@@ -38,6 +49,7 @@ class WAHAMCPServer {
       {
         capabilities: {
           tools: {},
+          resources: {},
         },
       }
     );
@@ -189,6 +201,40 @@ class WAHAMCPServer {
         };
       }
     });
+
+    // List available resources
+    this.server.setRequestHandler(ListResourcesRequestSchema, async () => {
+      const resources = this.resourceManager.listResources();
+      return {
+        resources: resources.map(r => ({
+          uri: r.uri,
+          name: r.name,
+          description: r.description,
+          mimeType: r.mimeType,
+        })),
+      };
+    });
+
+    // Read resource content
+    this.server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+      const { uri } = request.params;
+
+      try {
+        const content = await this.resourceManager.readResource(uri);
+        return {
+          contents: [
+            {
+              uri: content.uri,
+              mimeType: content.mimeType,
+              text: content.text,
+            },
+          ],
+        };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        throw new Error(`Failed to read resource: ${errorMessage}`);
+      }
+    });
   }
 
   /**
@@ -323,12 +369,39 @@ class WAHAMCPServer {
     };
 
     process.on("SIGINT", async () => {
-      await this.server.close();
+      await this.cleanup();
       process.exit(0);
     });
   }
 
+  private async cleanup(): Promise<void> {
+    console.error("[WAHAMCPServer] Shutting down...");
+
+    // Stop webhook system if running
+    if (this.webhookManager) {
+      await this.webhookManager.stop();
+    }
+
+    // Close MCP server
+    await this.server.close();
+
+    console.error("[WAHAMCPServer] Shutdown complete");
+  }
+
   async run(): Promise<void> {
+    // Start webhook system if configured (dynamic import to avoid loading ngrok when disabled)
+    if (config.webhook.enabled && config.webhook.autoStart) {
+      try {
+        const { createWebhookManager } = await import("./webhooks/index.js");
+        this.webhookManager = createWebhookManager(this.server, this.wahaClient, config.webhook);
+        await this.webhookManager.start();
+      } catch (error) {
+        console.error("[WAHAMCPServer] Failed to start webhook system:", error);
+        console.error("[WAHAMCPServer] Continuing without webhooks...");
+      }
+    }
+
+    // Connect MCP server to stdio transport
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
     console.error("WAHA MCP Server running on stdio");

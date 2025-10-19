@@ -245,6 +245,43 @@ export class WAHAClient {
   }
 
   /**
+   * Update session webhook configuration
+   * PUT /api/sessions/:session
+   */
+  async updateSessionWebhook(webhookConfig: {
+    url: string;
+    events: string[];
+    hmacKey?: string;
+  }): Promise<void> {
+    const body: any = {
+      config: {
+        webhooks: [
+          {
+            url: webhookConfig.url,
+            events: webhookConfig.events,
+          },
+        ],
+      },
+    };
+
+    // Add HMAC if provided
+    if (webhookConfig.hmacKey) {
+      body.config.webhooks[0].hmac = {
+        key: webhookConfig.hmacKey,
+      };
+    }
+
+    const endpoint = `/api/sessions/${this.session}`;
+
+    await this.request<void>(endpoint, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    });
+
+    console.error(`[WAHAClient] Webhook configured: ${webhookConfig.url}`);
+  }
+
+  /**
    * Validate chat ID format
    */
   static validateChatId(chatId: string): boolean {
