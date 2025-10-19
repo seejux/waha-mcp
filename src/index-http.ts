@@ -214,11 +214,13 @@ async function handleGetChats(client: WAHAClient, args: any) {
   const offset = args.offset;
   const chatIds = args.chatIds;
 
+  console.log('[Tool] waha_get_chats called:', { limit, offset, chatIds });
   const chats = await client.getChatsOverview({
     limit,
     offset,
     ids: chatIds,
   });
+  console.log(`[Tool] waha_get_chats returned ${chats.length} chats`);
 
   return {
     content: [{ type: "text", text: formatChatsOverview(chats) }],
@@ -230,12 +232,21 @@ async function handleGetMessages(client: WAHAClient, args: any) {
     throw new Error("chatId is required");
   }
 
+  console.log('[Tool] waha_get_messages called:', {
+    chatId: args.chatId,
+    limit: args.limit || 10,
+    offset: args.offset,
+    downloadMedia: args.downloadMedia || false
+  });
+
   const messages = await client.getChatMessages({
     chatId: args.chatId,
     limit: args.limit || 10,
     offset: args.offset,
     downloadMedia: args.downloadMedia || false,
   });
+
+  console.log(`[Tool] waha_get_messages returned ${messages.length} messages`);
 
   return {
     content: [{ type: "text", text: formatMessages(messages) }],
@@ -246,12 +257,21 @@ async function handleSendMessage(client: WAHAClient, args: any) {
   if (!args.chatId) throw new Error("chatId is required");
   if (!args.text) throw new Error("text is required");
 
+  console.log('[Tool] waha_send_message called:', {
+    chatId: args.chatId,
+    textLength: args.text?.length,
+    replyTo: args.replyTo,
+    linkPreview: args.linkPreview !== false
+  });
+
   const response = await client.sendTextMessage({
     chatId: args.chatId,
     text: args.text,
     reply_to: args.replyTo,
     linkPreview: args.linkPreview !== false,
   });
+
+  console.log('[Tool] waha_send_message succeeded:', { messageId: response.id });
 
   return {
     content: [
@@ -266,11 +286,19 @@ async function handleSendMessage(client: WAHAClient, args: any) {
 async function handleMarkChatRead(client: WAHAClient, args: any) {
   if (!args.chatId) throw new Error("chatId is required");
 
+  console.log('[Tool] waha_mark_chat_read called:', {
+    chatId: args.chatId,
+    messages: args.messages || 30,
+    days: args.days || 7
+  });
+
   await client.markChatAsRead({
     chatId: args.chatId,
     messages: args.messages || 30,
     days: args.days || 7,
   });
+
+  console.log('[Tool] waha_mark_chat_read succeeded');
 
   return {
     content: [
@@ -285,7 +313,27 @@ async function handleMarkChatRead(client: WAHAClient, args: any) {
 // Create Express app
 const app = express();
 app.use(cors());
+
+// IMPORTANT: Add JSON body parser BEFORE MCP routes
 app.use(express.json());
+
+// Global request logger - logs ALL incoming requests
+app.use((req, _res, next) => {
+  console.log('\n' + '─'.repeat(60));
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  console.log(`  Remote: ${req.ip || req.socket.remoteAddress}`);
+  console.log(`  Headers:`, {
+    'content-type': req.headers['content-type'],
+    'accept': req.headers['accept'],
+    'mcp-session-id': req.headers['mcp-session-id'],
+    'user-agent': req.headers['user-agent']
+  });
+  if (req.body && Object.keys(req.body).length > 0) {
+    console.log(`  Body:`, JSON.stringify(req.body).substring(0, 200));
+  }
+  console.log('─'.repeat(60));
+  next();
+});
 
 // Health check endpoint
 app.get('/health', (_req, res) => {
@@ -296,15 +344,22 @@ app.get('/health', (_req, res) => {
 app.post('/mcp', async (req: Request, res: Response) => {
   const sessionId = req.headers['mcp-session-id'] as string;
 
+  console.log('[MCP POST] Incoming request');
+  console.log(`  Session ID: ${sessionId || '(new session)'}`);
+  console.log(`  Method: ${req.body?.method || 'unknown'}`);
+  console.log(`  Request ID: ${req.body?.id || 'unknown'}`);
+
   // Get or create transport for this session
   let transport = sessionId ? transports[sessionId] : undefined;
 
   if (!transport) {
+    console.log('[MCP POST] Creating new transport for new session');
+
     // Create new transport for new session
     transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: () => randomUUID(),
       onsessioninitialized: (newSessionId) => {
-        console.log(`Session initialized: ${newSessionId}`);
+        console.log(`[MCP Session] Initialized: ${newSessionId}`);
         transports[newSessionId] = transport!;
       },
     });
@@ -313,7 +368,7 @@ app.post('/mcp', async (req: Request, res: Response) => {
     transport.onclose = () => {
       const sid = transport!.sessionId;
       if (sid && transports[sid]) {
-        console.log(`Transport closed for session ${sid}`);
+        console.log(`[MCP Session] Closed: ${sid}`);
         delete transports[sid];
       }
     };
@@ -321,42 +376,78 @@ app.post('/mcp', async (req: Request, res: Response) => {
     // Connect to server
     const server = createServer();
     await server.connect(transport);
+    console.log('[MCP POST] Server connected to transport');
+  } else {
+    console.log(`[MCP POST] Using existing transport for session ${sessionId}`);
   }
 
-  // Handle the request
-  await transport.handleRequest(req, res);
+  // Handle the request with parsed body (CRITICAL: pass req.body as third parameter)
+  try {
+    await transport.handleRequest(req, res, req.body);
+    console.log(`[MCP POST] Request handled successfully`);
+  } catch (error) {
+    console.error('[MCP POST] Error handling request:', error);
+    throw error;
+  }
 });
 
 // Handle GET requests (server-to-client event streams)
 app.get('/mcp', async (req: Request, res: Response) => {
   const sessionId = req.headers['mcp-session-id'] as string;
 
+  console.log('[MCP GET] SSE stream request');
+  console.log(`  Session ID: ${sessionId || '(missing)'}`);
+
   if (!sessionId || !transports[sessionId]) {
+    console.error('[MCP GET] Invalid or missing session ID');
     res.status(400).send('Invalid or missing session ID');
     return;
   }
 
-  await transports[sessionId].handleRequest(req, res);
+  console.log(`[MCP GET] Opening SSE stream for session ${sessionId}`);
+  try {
+    await transports[sessionId].handleRequest(req, res);
+    console.log(`[MCP GET] SSE stream closed for session ${sessionId}`);
+  } catch (error) {
+    console.error('[MCP GET] Error handling SSE stream:', error);
+    throw error;
+  }
 });
 
 // Handle DELETE requests (session termination)
 app.delete('/mcp', async (req: Request, res: Response) => {
   const sessionId = req.headers['mcp-session-id'] as string;
 
+  console.log('[MCP DELETE] Session termination request');
+  console.log(`  Session ID: ${sessionId || '(missing)'}`);
+
   if (!sessionId || !transports[sessionId]) {
+    console.error('[MCP DELETE] Invalid or missing session ID');
     res.status(400).send('Invalid or missing session ID');
     return;
   }
 
-  console.log(`Session termination requested: ${sessionId}`);
-  await transports[sessionId].handleRequest(req, res);
+  console.log(`[MCP DELETE] Terminating session: ${sessionId}`);
+  try {
+    await transports[sessionId].handleRequest(req, res);
+    console.log(`[MCP DELETE] Session terminated successfully: ${sessionId}`);
+  } catch (error) {
+    console.error('[MCP DELETE] Error terminating session:', error);
+    throw error;
+  }
 });
 
 // Start server
 app.listen(MCP_PORT, () => {
-  console.log(`WAHA MCP Server (HTTP) running on http://localhost:${MCP_PORT}`);
-  console.log(`MCP endpoint: http://localhost:${MCP_PORT}/mcp`);
-  console.log(`Health check: http://localhost:${MCP_PORT}/health`);
+  console.log('='.repeat(60));
+  console.log('WAHA MCP Server (HTTP) - STARTED');
+  console.log('='.repeat(60));
+  console.log(`Server URL:    http://localhost:${MCP_PORT}`);
+  console.log(`MCP endpoint:  http://localhost:${MCP_PORT}/mcp`);
+  console.log(`Health check:  http://localhost:${MCP_PORT}/health`);
+  console.log(`Active sessions: 0`);
+  console.log('='.repeat(60));
+  console.log('Waiting for connections...\n');
 });
 
 // Handle shutdown
