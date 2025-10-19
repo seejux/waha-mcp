@@ -311,8 +311,13 @@ async function handleMarkChatRead(client: WAHAClient, args: any) {
 const app = express();
 app.use(cors());
 
-// IMPORTANT: Add JSON body parser BEFORE MCP routes
-app.use(express.json());
+// IMPORTANT: Do NOT parse JSON for the /mcp route to avoid consuming the request stream
+app.use((req, res, next) => {
+  if (req.path === '/mcp') {
+    return next();
+  }
+  return express.json()(req, res, next);
+});
 
 // Global request logger - logs ALL incoming requests
 app.use((req, _res, next) => {
@@ -367,8 +372,8 @@ app.post('/mcp', async (req: Request, res: Response) => {
     console.log('[MCP POST] Server connected to transport');
 
     // Pass the pre-parsed body from express.json() middleware
-    console.log(`[MCP POST] Passing parsedBody to handleRequest: ${req.body !== undefined}`);
-    await transport.handleRequest(req, res, req.body);
+  console.log(`[MCP POST] Using raw request body (no pre-parsed body)`);
+  await transport.handleRequest(req, res);
     console.log(`[MCP POST] Request handled successfully`);
   } catch (error) {
     console.error('[MCP POST] Error handling request:', error);
