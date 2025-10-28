@@ -109,35 +109,32 @@ export class WebhookServer {
    */
   private validateHmac(body: string, signature?: string): boolean {
     if (!this.hmacKey || !signature) {
-      console.error("[WebhookServer] HMAC validation skipped:", {
-        hasKey: !!this.hmacKey,
-        hasSignature: !!signature,
-      });
+      console.error("[WebhookServer] HMAC validation skipped:");
+      console.error(`  Has HMAC Key configured: ${!!this.hmacKey}`);
+      console.error(`  Has signature in request: ${!!signature}`);
       return false;
     }
 
     try {
-      const expectedHmac = createHmac("sha512", this.hmacKey)
+      const expectedHmac = createHmac("sha256", this.hmacKey)
         .update(body)
         .digest("hex");
 
-      console.error("[WebhookServer] HMAC Debug:", {
-        receivedSignature: signature,
-        expectedSignature: expectedHmac,
-        keyLength: this.hmacKey.length,
-        bodyLength: body.length,
-        bodySample: body.substring(0, 100),
-      });
+      console.error("[WebhookServer] HMAC Debug:");
+      console.error(`  Received Signature: ${signature}`);
+      console.error(`  Expected Signature: ${expectedHmac}`);
+      console.error(`  HMAC Key Length: ${this.hmacKey.length}`);
+      console.error(`  Body Length: ${body.length}`);
+      console.error(`  Body Sample: ${body.substring(0, 150)}`);
 
       const expectedBuffer = Buffer.from(expectedHmac);
       const receivedBuffer = Buffer.from(signature);
 
       // Timing-safe comparison
       if (expectedBuffer.length !== receivedBuffer.length) {
-        console.error("[WebhookServer] HMAC length mismatch:", {
-          expected: expectedBuffer.length,
-          received: receivedBuffer.length,
-        });
+        console.error("[WebhookServer] HMAC length mismatch:");
+        console.error(`  Expected length: ${expectedBuffer.length}`);
+        console.error(`  Received length: ${receivedBuffer.length}`);
         return false;
       }
 
