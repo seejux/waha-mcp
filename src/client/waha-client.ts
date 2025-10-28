@@ -276,7 +276,12 @@ export class WAHAClient {
 
     const endpoint = `/api/sessions/${this.session}`;
 
-    console.error(`[WAHAClient] Sending webhook config:`, JSON.stringify(body, null, 2));
+    console.error(`[WAHAClient] Sending webhook config to endpoint: ${endpoint}`);
+    console.error(`[WAHAClient] Webhook URL: ${body.config.webhooks[0].url}`);
+    console.error(`[WAHAClient] Webhook events: ${body.config.webhooks[0].events.join(", ")}`);
+    if (body.config.webhooks[0].hmac) {
+      console.error(`[WAHAClient] HMAC enabled: yes`);
+    }
 
     await this.request<void>(endpoint, {
       method: "PUT",
