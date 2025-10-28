@@ -117,7 +117,7 @@ export class WebhookServer {
     }
 
     try {
-      const expectedHmac = createHmac("sha256", this.hmacKey)
+      const expectedHmac = createHmac("sha512", this.hmacKey)
         .update(body)
         .digest("hex");
 
