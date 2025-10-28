@@ -109,6 +109,10 @@ export class WebhookServer {
    */
   private validateHmac(body: string, signature?: string): boolean {
     if (!this.hmacKey || !signature) {
+      console.error("[WebhookServer] HMAC validation skipped:", {
+        hasKey: !!this.hmacKey,
+        hasSignature: !!signature,
+      });
       return false;
     }
 
@@ -117,15 +121,29 @@ export class WebhookServer {
         .update(body)
         .digest("hex");
 
+      console.error("[WebhookServer] HMAC Debug:", {
+        receivedSignature: signature,
+        expectedSignature: expectedHmac,
+        keyLength: this.hmacKey.length,
+        bodyLength: body.length,
+        bodySample: body.substring(0, 100),
+      });
+
       const expectedBuffer = Buffer.from(expectedHmac);
       const receivedBuffer = Buffer.from(signature);
 
       // Timing-safe comparison
       if (expectedBuffer.length !== receivedBuffer.length) {
+        console.error("[WebhookServer] HMAC length mismatch:", {
+          expected: expectedBuffer.length,
+          received: receivedBuffer.length,
+        });
         return false;
       }
 
-      return timingSafeEqual(expectedBuffer, receivedBuffer);
+      const isValid = timingSafeEqual(expectedBuffer, receivedBuffer);
+      console.error(`[WebhookServer] HMAC validation result: ${isValid}`);
+      return isValid;
     } catch (error) {
       console.error("[WebhookServer] HMAC validation error:", error);
       return false;

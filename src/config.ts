@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 
-// Load environment variables from .env file
-dotenv.config();
+// Load environment variables from .env file (silent mode for Windows compatibility)
+dotenv.config({ debug: false });
 
 export interface WAHAConfig {
   wahaBaseUrl: string;

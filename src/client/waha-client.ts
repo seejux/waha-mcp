@@ -269,9 +269,14 @@ export class WAHAClient {
       body.config.webhooks[0].hmac = {
         key: webhookConfig.hmacKey,
       };
+      console.error(`[WAHAClient] HMAC key configured: ${webhookConfig.hmacKey.substring(0, 4)}...${webhookConfig.hmacKey.substring(webhookConfig.hmacKey.length - 4)} (length: ${webhookConfig.hmacKey.length})`);
+    } else {
+      console.error("[WAHAClient] No HMAC key provided");
     }
 
     const endpoint = `/api/sessions/${this.session}`;
+
+    console.error(`[WAHAClient] Sending webhook config:`, JSON.stringify(body, null, 2));
 
     await this.request<void>(endpoint, {
       method: "PUT",
