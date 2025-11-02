@@ -1140,6 +1140,8 @@ class WAHAMCPServer {
             return await this.handleGetContactAbout(args);
           case "waha_get_contact_profile_picture":
             return await this.handleGetContactProfilePicture(args);
+          case "waha_get_chat_picture":
+            return await this.handleGetChatPicture(args);
           case "waha_block_contact":
             return await this.handleBlockContact(args);
           case "waha_unblock_contact":
