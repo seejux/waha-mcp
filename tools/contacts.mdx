@@ -1,0 +1,124 @@
+---
+title: Contacts
+description: Tools for managing WhatsApp contacts
+---
+
+# Contacts
+
+Tools for looking up contact information and managing your contact list.
+
+## waha_get_contact
+
+Get information about a specific contact.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `contactId` | string | Yes | Contact ID (format: `number@c.us`) |
+
+```json
+{
+  "contactId": "1234567890@c.us"
+}
+```
+
+## waha_get_all_contacts
+
+List all contacts with pagination.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `sortBy` | string | No | Sort by `id` or `name` |
+| `sortOrder` | string | No | `asc` or `desc` |
+| `limit` | number | No | Max results (default: 100) |
+| `offset` | number | No | Pagination offset |
+
+```json
+{
+  "sortBy": "name",
+  "sortOrder": "asc",
+  "limit": 50
+}
+```
+
+## waha_check_contact_exists
+
+Check if a phone number is registered on WhatsApp.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `phone` | string | Yes | Phone number to check |
+
+```json
+{
+  "phone": "1234567890"
+}
+```
+
+<Tip>
+Use this before sending messages to verify the recipient has WhatsApp.
+</Tip>
+
+## waha_get_contact_about
+
+Get a contact's about/status text.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `contactId` | string | Yes | Contact ID |
+
+```json
+{
+  "contactId": "1234567890@c.us"
+}
+```
+
+## waha_get_contact_profile_picture
+
+Get a contact's profile picture URL.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `contactId` | string | Yes | Contact ID |
+| `refresh` | boolean | No | Bypass cache (default: false) |
+
+```json
+{
+  "contactId": "1234567890@c.us"
+}
+```
+
+## waha_block_contact
+
+Block a contact. Blocked contacts cannot send you messages.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `contactId` | string | Yes | Contact ID to block |
+
+```json
+{
+  "contactId": "1234567890@c.us"
+}
+```
+
+## waha_unblock_contact
+
+Unblock a previously blocked contact.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `contactId` | string | Yes | Contact ID to unblock |
+
+```json
+{
+  "contactId": "1234567890@c.us"
+}
+```
+
+## Contact ID format
+
+Contact IDs use the format `<phone_number>@c.us`:
+
+- Phone number should include country code
+- No plus sign, dashes, or spaces
+- Example: `1234567890@c.us` for US number +1 (234) 567-890
