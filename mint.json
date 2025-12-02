@@ -1,0 +1,7 @@
+{
+  "project": "waha mcp",
+  "source": "src",
+  "output": "docs",
+  "include": ["src/**/*.js", "src/**/*.ts"], 
+  "exclude": ["node_modules", "test"]
+}
