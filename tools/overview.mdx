@@ -1,0 +1,69 @@
+---
+title: Tools overview
+description: Complete list of available MCP tools for WhatsApp integration
+---
+
+# Tools overview
+
+WAHA MCP Server provides 45+ tools organized into functional categories. Each tool is available to MCP clients like Claude Desktop.
+
+## Tool categories
+
+| Category | Tools | Description |
+|----------|-------|-------------|
+| [Chat management](/tools/chat-management) | 10 | Read chats, manage messages, archive/delete |
+| [Messaging](/tools/messaging) | 10 | Send text, media, locations, contacts, reactions |
+| [Group management](/tools/group-management) | 18 | Create groups, manage members, settings |
+| [Contacts](/tools/contacts) | 7 | Look up contacts, block/unblock |
+| [Presence](/tools/presence) | 4 | Online status, typing indicators |
+
+## Chat ID format
+
+WhatsApp uses specific ID formats that you'll need for most tools:
+
+| Type | Format | Example |
+|------|--------|---------|
+| Individual chat | `<phone>@c.us` | `1234567890@c.us` |
+| Group chat | `<group_id>@g.us` | `123456789012345678@g.us` |
+
+<Tip>
+Use `waha_get_chats` to discover chat IDs for your conversations.
+</Tip>
+
+## Message ID format
+
+Message IDs follow this pattern:
+
+```
+{fromMe}_{chatId}_{messageId}[_{participant}]
+```
+
+- `fromMe`: `true` or `false`
+- `chatId`: The chat ID
+- `messageId`: Unique message identifier
+- `participant`: (Groups only) Sender's ID
+
+## Common parameters
+
+Many tools share these parameters:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `chatId` | string | Target chat ID |
+| `limit` | number | Max results to return (default: 10, max: 100) |
+| `offset` | number | Skip N results for pagination |
+
+## Error handling
+
+When a tool fails, you'll receive an error response with:
+
+- **Error message**: Description of what went wrong
+- **WAHA API indicator**: If it's a WAHA server error
+
+Example error:
+```
+Error: chatId is required
+
+This is a WAHA API error. Please check your WAHA server 
+connection and API credentials.
+```
