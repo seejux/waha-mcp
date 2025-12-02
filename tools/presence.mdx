@@ -1,0 +1,99 @@
+---
+title: Presence
+description: Tools for tracking online status and typing indicators
+---
+
+# Presence
+
+Tools for monitoring and setting online/offline status and typing indicators.
+
+## waha_get_presence
+
+Get the current presence status for a chat. Auto-subscribes if not already subscribed.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `chatId` | string | Yes | Chat ID to check |
+
+```json
+{
+  "chatId": "1234567890@c.us"
+}
+```
+
+Returns presence information including:
+- Online/offline status
+- Last seen timestamp (if available)
+- Typing/recording status
+
+## waha_subscribe_presence
+
+Subscribe to presence updates for a chat. Required to receive real-time status changes.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `chatId` | string | Yes | Chat ID to subscribe to |
+
+```json
+{
+  "chatId": "1234567890@c.us"
+}
+```
+
+<Note>
+`waha_get_presence` automatically subscribes, so you typically don't need to call this separately.
+</Note>
+
+## waha_set_presence
+
+Set your own presence status in a chat.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `chatId` | string | Yes | Chat ID |
+| `presence` | string | Yes | Status to set |
+
+Available presence values:
+
+| Value | Description |
+|-------|-------------|
+| `online` | Show as online |
+| `offline` | Show as offline |
+| `typing` | Show typing indicator |
+| `recording` | Show recording audio indicator |
+| `paused` | Clear typing/recording indicator |
+
+```json
+{
+  "chatId": "1234567890@c.us",
+  "presence": "typing"
+}
+```
+
+<Tip>
+Use `typing` before sending a message to make interactions feel more natural.
+</Tip>
+
+## waha_get_all_presence
+
+Get presence information for all subscribed chats.
+
+```json
+{}
+```
+
+Returns an array of presence data for every chat you've subscribed to.
+
+## Presence workflow
+
+A typical presence workflow:
+
+1. **Subscribe** to a contact's presence
+2. **Check** their status before messaging
+3. **Set** your presence to "typing" while composing
+4. **Send** the message
+5. **Set** presence to "paused" or "online"
+
+```
+Subscribe → Check status → Set "typing" → Send → Set "paused"
+```
