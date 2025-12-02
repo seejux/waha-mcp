@@ -1,0 +1,222 @@
+---
+title: Messaging
+description: Tools for sending messages, media, and reactions
+---
+
+# Messaging
+
+Tools for sending various types of content and managing messages.
+
+## waha_send_message
+
+Send a text message to a chat.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `chatId` | string | Yes | Recipient chat ID |
+| `text` | string | Yes | Message text |
+| `replyTo` | string | No | Message ID to reply to |
+| `linkPreview` | boolean | No | Enable link preview (default: true) |
+
+```json
+{
+  "chatId": "1234567890@c.us",
+  "text": "Hello from MCP!"
+}
+```
+
+## waha_edit_message
+
+Edit a previously sent message. Only works for your own messages.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `chatId` | string | Yes | Chat ID |
+| `messageId` | string | Yes | Message ID to edit |
+| `text` | string | Yes | New message text |
+| `linkPreview` | boolean | No | Enable link preview (default: true) |
+| `linkPreviewHighQuality` | boolean | No | High quality preview (default: false) |
+
+```json
+{
+  "chatId": "1234567890@c.us",
+  "messageId": "true_1234567890@c.us_ABC123",
+  "text": "Updated message text"
+}
+```
+
+## waha_delete_message
+
+Delete a specific message from a chat.
+
+<Warning>
+This is a destructive operation that cannot be undone.
+</Warning>
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `chatId` | string | Yes | Chat ID |
+| `messageId` | string | Yes | Message ID to delete |
+
+```json
+{
+  "chatId": "1234567890@c.us",
+  "messageId": "true_1234567890@c.us_ABC123"
+}
+```
+
+## waha_send_media
+
+Send images, videos, or documents.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `chatId` | string | Yes | Recipient chat ID |
+| `mediaType` | string | Yes | `image`, `video`, or `document` |
+| `fileUrl` | string | No* | URL of the file |
+| `fileData` | string | No* | Base64 encoded file data |
+| `mimetype` | string | Yes | MIME type (e.g., `image/jpeg`) |
+| `filename` | string | No | Filename for the media |
+| `caption` | string | No | Caption text |
+| `replyTo` | string | No | Message ID to reply to |
+
+<Note>
+Provide either `fileUrl` or `fileData`, not both.
+</Note>
+
+```json
+{
+  "chatId": "1234567890@c.us",
+  "mediaType": "image",
+  "fileUrl": "https://example.com/image.jpg",
+  "mimetype": "image/jpeg",
+  "caption": "Check out this image!"
+}
+```
+
+## waha_send_audio
+
+Send audio or voice messages.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `chatId` | string | Yes | Recipient chat ID |
+| `fileUrl` | string | No* | URL of the audio file |
+| `fileData` | string | No* | Base64 encoded audio data |
+| `mimetype` | string | Yes | MIME type (e.g., `audio/ogg`) |
+| `filename` | string | No | Filename |
+| `replyTo` | string | No | Message ID to reply to |
+
+```json
+{
+  "chatId": "1234567890@c.us",
+  "fileUrl": "https://example.com/audio.ogg",
+  "mimetype": "audio/ogg"
+}
+```
+
+## waha_send_location
+
+Send a location pin.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `chatId` | string | Yes | Recipient chat ID |
+| `latitude` | number | Yes | Latitude coordinate |
+| `longitude` | number | Yes | Longitude coordinate |
+| `title` | string | No | Location name/title |
+| `replyTo` | string | No | Message ID to reply to |
+
+```json
+{
+  "chatId": "1234567890@c.us",
+  "latitude": 37.7749,
+  "longitude": -122.4194,
+  "title": "San Francisco"
+}
+```
+
+## waha_send_contact
+
+Send a contact card using vCard format.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `chatId` | string | Yes | Recipient chat ID |
+| `vcard` | string | Yes | vCard formatted contact data |
+| `replyTo` | string | No | Message ID to reply to |
+
+```json
+{
+  "chatId": "1234567890@c.us",
+  "vcard": "BEGIN:VCARD\nVERSION:3.0\nFN:Jane Doe\nTEL:+1234567890\nEND:VCARD"
+}
+```
+
+## waha_react_to_message
+
+Add an emoji reaction to a message.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `messageId` | string | Yes | Message ID to react to |
+| `reaction` | string | Yes | Emoji (empty string to remove) |
+
+```json
+{
+  "messageId": "true_1234567890@c.us_ABC123",
+  "reaction": "👍"
+}
+```
+
+## waha_star_message
+
+Star or unstar a message.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `chatId` | string | Yes | Chat ID |
+| `messageId` | string | Yes | Message ID |
+| `star` | boolean | Yes | `true` to star, `false` to unstar |
+
+```json
+{
+  "chatId": "1234567890@c.us",
+  "messageId": "true_1234567890@c.us_ABC123",
+  "star": true
+}
+```
+
+## waha_pin_message
+
+Pin a message to the top of a chat.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `chatId` | string | Yes | Chat ID |
+| `messageId` | string | Yes | Message ID to pin |
+| `duration` | number | No | Pin duration in seconds (default: 86400) |
+
+```json
+{
+  "chatId": "1234567890@c.us",
+  "messageId": "true_1234567890@c.us_ABC123",
+  "duration": 86400
+}
+```
+
+## waha_unpin_message
+
+Unpin a pinned message.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `chatId` | string | Yes | Chat ID |
+| `messageId` | string | Yes | Message ID to unpin |
+
+```json
+{
+  "chatId": "1234567890@c.us",
+  "messageId": "true_1234567890@c.us_ABC123"
+}
+```

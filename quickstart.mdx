@@ -1,0 +1,126 @@
+---
+title: Quickstart
+description: Get WAHA MCP Server running in 5 minutes
+---
+
+# Quickstart
+
+Get the WAHA MCP Server running and connected to Claude Desktop.
+
+## Installation
+
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/your-org/waha-mcp-server.git
+    cd waha-mcp-server
+    ```
+  </Step>
+
+  <Step title="Install dependencies">
+    ```bash
+    npm install
+    ```
+  </Step>
+
+  <Step title="Configure environment">
+    Copy the example environment file and edit it with your WAHA credentials:
+
+    ```bash
+    cp .env.example .env
+    ```
+
+    Edit `.env` with your values:
+
+    ```bash
+    WAHA_BASE_URL=http://localhost:3000
+    WAHA_API_KEY=your-api-key-here
+    WAHA_SESSION=default
+    ```
+  </Step>
+
+  <Step title="Build the project">
+    ```bash
+    npm run build
+    ```
+  </Step>
+
+  <Step title="Test with MCP Inspector">
+    Verify everything works using the MCP Inspector:
+
+    ```bash
+    npm run inspector
+    ```
+
+    This opens a web UI where you can test all tools interactively.
+  </Step>
+</Steps>
+
+## Connect to Claude Desktop
+
+Add the server to your Claude Desktop MCP configuration:
+
+<Tabs>
+  <Tab title="macOS">
+    Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
+
+    ```json
+    {
+      "mcpServers": {
+        "waha": {
+          "command": "node",
+          "args": ["/absolute/path/to/waha-mcp-server/dist/index.js"],
+          "env": {
+            "WAHA_BASE_URL": "http://localhost:3000",
+            "WAHA_API_KEY": "your-api-key-here",
+            "WAHA_SESSION": "default"
+          }
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab title="Windows">
+    Edit `%APPDATA%\Claude\claude_desktop_config.json`:
+
+    ```json
+    {
+      "mcpServers": {
+        "waha": {
+          "command": "node",
+          "args": ["C:\\path\\to\\waha-mcp-server\\dist\\index.js"],
+          "env": {
+            "WAHA_BASE_URL": "http://localhost:3000",
+            "WAHA_API_KEY": "your-api-key-here",
+            "WAHA_SESSION": "default"
+          }
+        }
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+Restart Claude Desktop to load the new configuration.
+
+## Verify the connection
+
+In Claude Desktop, you should now see the WAHA tools available. Try asking Claude:
+
+> "Show me my recent WhatsApp chats"
+
+Claude will use the `waha_get_chats` tool to retrieve your conversations.
+
+## Development mode
+
+For development with auto-reload:
+
+```bash
+npm run dev
+```
+
+## Next steps
+
+- [Configure webhooks](/integrations/webhooks) for real-time message notifications
+- [Explore all available tools](/tools/overview)
+- [Learn about chat ID formats](/tools/chat-management#chat-id-format)

@@ -1,15 +1,32 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "waha mcp",
-  "source": "src",
-  "output": "docs",
-  "include": ["src/**/*.js", "src/**/*.ts"], 
-  "exclude": ["node_modules", "test"],
+  "theme": "venus",
+  "name": "WAHA MCP Server",
   "colors": {
     "primary": "#16A34A",
     "light": "#07C983",
     "dark": "#15803D"
   },
-  "favicon": "/favicon.svg"
+  "favicon": "/favicon.svg",
+  "navigation": [
+    {
+      "group": "Getting started",
+      "pages": ["introduction", "quickstart", "configuration"]
+    },
+    {
+      "group": "Tools reference",
+      "pages": [
+        "tools/overview",
+        "tools/chat-management",
+        "tools/messaging",
+        "tools/group-management",
+        "tools/contacts",
+        "tools/presence"
+      ]
+    },
+    {
+      "group": "Integrations",
+      "pages": ["integrations/claude-desktop", "integrations/webhooks"]
+    }
+  ]
 }

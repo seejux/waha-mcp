@@ -1,0 +1,171 @@
+---
+title: Claude Desktop
+description: Connect WAHA MCP Server to Claude Desktop
+---
+
+# Claude Desktop integration
+
+Connect WAHA MCP Server to Claude Desktop to enable WhatsApp interactions directly from Claude.
+
+## Configuration
+
+Add the server to your Claude Desktop MCP configuration file:
+
+<Tabs>
+  <Tab title="macOS">
+    **Location**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+    ```json
+    {
+      "mcpServers": {
+        "waha": {
+          "command": "node",
+          "args": ["/absolute/path/to/waha-mcp-server/dist/index.js"],
+          "env": {
+            "WAHA_BASE_URL": "http://localhost:3000",
+            "WAHA_API_KEY": "your-api-key-here",
+            "WAHA_SESSION": "default"
+          }
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab title="Windows">
+    **Location**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+    ```json
+    {
+      "mcpServers": {
+        "waha": {
+          "command": "node",
+          "args": ["C:\\path\\to\\waha-mcp-server\\dist\\index.js"],
+          "env": {
+            "WAHA_BASE_URL": "http://localhost:3000",
+            "WAHA_API_KEY": "your-api-key-here",
+            "WAHA_SESSION": "default"
+          }
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab title="Linux">
+    **Location**: `~/.config/Claude/claude_desktop_config.json`
+
+    ```json
+    {
+      "mcpServers": {
+        "waha": {
+          "command": "node",
+          "args": ["/absolute/path/to/waha-mcp-server/dist/index.js"],
+          "env": {
+            "WAHA_BASE_URL": "http://localhost:3000",
+            "WAHA_API_KEY": "your-api-key-here",
+            "WAHA_SESSION": "default"
+          }
+        }
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Configuration with webhooks
+
+To enable real-time message notifications:
+
+```json
+{
+  "mcpServers": {
+    "waha": {
+      "command": "node",
+      "args": ["/absolute/path/to/waha-mcp-server/dist/index.js"],
+      "env": {
+        "WAHA_BASE_URL": "http://localhost:3000",
+        "WAHA_API_KEY": "your-api-key-here",
+        "WAHA_SESSION": "default",
+        "WEBHOOK_ENABLED": "true",
+        "WEBHOOK_PORT": "3001",
+        "NGROK_AUTHTOKEN": "your-ngrok-token"
+      }
+    }
+  }
+}
+```
+
+## Restart Claude Desktop
+
+After editing the configuration:
+
+1. Quit Claude Desktop completely
+2. Reopen Claude Desktop
+3. The WAHA tools should now be available
+
+## Verify connection
+
+Ask Claude to test the connection:
+
+> "Show me my recent WhatsApp chats"
+
+Claude will use the `waha_get_chats` tool and display your conversations.
+
+## Example prompts
+
+Once connected, try these prompts:
+
+| Prompt | What it does |
+|--------|--------------|
+| "Show my WhatsApp chats" | Lists recent conversations |
+| "Get messages from [contact]" | Retrieves message history |
+| "Send 'Hello!' to [number]" | Sends a text message |
+| "List my WhatsApp groups" | Shows all groups |
+| "Mark chat with [contact] as read" | Clears unread indicator |
+
+## Troubleshooting
+
+### Tools not appearing
+
+- Verify the path to `dist/index.js` is correct and absolute
+- Ensure you've run `npm run build` first
+- Check that Node.js is in your PATH
+
+### Connection errors
+
+- Verify WAHA server is running and accessible
+- Check API key is correct
+- Ensure WhatsApp session is active in WAHA
+
+### Permission errors
+
+- On macOS/Linux, ensure the script is executable
+- Check file permissions on the dist directory
+
+## Multiple WAHA sessions
+
+To connect multiple WhatsApp accounts, add separate server entries:
+
+```json
+{
+  "mcpServers": {
+    "waha-personal": {
+      "command": "node",
+      "args": ["/path/to/waha-mcp-server/dist/index.js"],
+      "env": {
+        "WAHA_BASE_URL": "http://localhost:3000",
+        "WAHA_API_KEY": "your-api-key",
+        "WAHA_SESSION": "personal"
+      }
+    },
+    "waha-work": {
+      "command": "node",
+      "args": ["/path/to/waha-mcp-server/dist/index.js"],
+      "env": {
+        "WAHA_BASE_URL": "http://localhost:3000",
+        "WAHA_API_KEY": "your-api-key",
+        "WAHA_SESSION": "work"
+      }
+    }
+  }
+}
+```

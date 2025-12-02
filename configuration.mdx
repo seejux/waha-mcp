@@ -1,0 +1,83 @@
+---
+title: Configuration
+description: Environment variables and configuration options
+---
+
+# Configuration
+
+WAHA MCP Server is configured through environment variables. Create a `.env` file in the project root or set them directly in your environment.
+
+## Required variables
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `WAHA_BASE_URL` | Your WAHA server URL (without trailing slash) | `http://localhost:3000` |
+| `WAHA_API_KEY` | API key for WAHA authentication | `your-api-key-here` |
+
+## Optional variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `WAHA_SESSION` | WhatsApp session name to use | `default` |
+| `MCP_PORT` | Port for HTTP mode (if applicable) | `3001` |
+
+## Webhook configuration
+
+Enable webhooks to receive real-time notifications for WhatsApp events.
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `WEBHOOK_ENABLED` | Enable webhook support | `false` |
+| `WEBHOOK_PORT` | Local port for webhook server | `3001` |
+| `WEBHOOK_HMAC_KEY` | Secret key for signature validation | - |
+| `NGROK_AUTHTOKEN` | ngrok auth token for public URL | - |
+| `WEBHOOK_AUTO_START` | Auto-start webhooks on server start | `true` |
+
+## Example configuration
+
+```bash
+# Required - WAHA connection
+WAHA_BASE_URL=http://localhost:3000
+WAHA_API_KEY=your-api-key-here
+WAHA_SESSION=default
+
+# Optional - Webhooks for real-time events
+WEBHOOK_ENABLED=true
+WEBHOOK_PORT=3001
+WEBHOOK_HMAC_KEY=your-secret-key-here
+NGROK_AUTHTOKEN=your-ngrok-token
+```
+
+## Generating a secure HMAC key
+
+For webhook signature validation, generate a random secret:
+
+```bash
+openssl rand -hex 32
+```
+
+## Getting an ngrok auth token
+
+1. Sign up at [ngrok.com](https://ngrok.com)
+2. Go to [Your Authtoken](https://dashboard.ngrok.com/get-started/your-authtoken)
+3. Copy the token to `NGROK_AUTHTOKEN`
+
+The free tier works fine for testing and development.
+
+## Configuration validation
+
+The server validates configuration on startup. If required variables are missing, you'll see an error:
+
+```
+Error: WAHA_BASE_URL environment variable is required.
+Please set it in .env file or environment.
+```
+
+## Resource caching
+
+The server caches certain resources to improve performance:
+
+- **Cache TTL**: 5 minutes (300 seconds)
+- **Cached resources**: Chat overviews, chat messages
+
+Caching is enabled by default and helps reduce API calls to your WAHA server.

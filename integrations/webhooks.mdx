@@ -1,0 +1,130 @@
+---
+title: Webhooks
+description: Real-time WhatsApp event notifications via webhooks
+---
+
+# Webhooks
+
+Enable webhooks to receive real-time notifications when WhatsApp events occur, such as new messages or status changes.
+
+## How it works
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│ WAHA Server │────▶│   ngrok     │────▶│ MCP Server  │
+│  (events)   │     │  (tunnel)   │     │ (webhook)   │
+└─────────────┘     └─────────────┘     └─────────────┘
+```
+
+1. **WAHA Server** generates events (new messages, status changes, etc.)
+2. **ngrok** creates a public URL tunnel to your local webhook server
+3. **MCP Server** receives and processes the events
+
+## Configuration
+
+Enable webhooks in your environment:
+
+```bash
+# Enable webhook support
+WEBHOOK_ENABLED=true
+
+# Local port for webhook server
+WEBHOOK_PORT=3001
+
+# Secret for signature validation (recommended)
+WEBHOOK_HMAC_KEY=your-secret-key-here
+
+# ngrok auth token (optional, for better reliability)
+NGROK_AUTHTOKEN=your-ngrok-token
+
+# Auto-start webhooks when server starts
+WEBHOOK_AUTO_START=true
+```
+
+## Getting an ngrok token
+
+1. Sign up at [ngrok.com](https://ngrok.com) (free tier works fine)
+2. Go to [Your Authtoken](https://dashboard.ngrok.com/get-started/your-authtoken)
+3. Copy the token to `NGROK_AUTHTOKEN`
+
+<Note>
+ngrok works without an auth token, but you'll have better reliability and no session limits with one.
+</Note>
+
+## Generating an HMAC key
+
+For webhook signature validation, generate a secure random key:
+
+```bash
+openssl rand -hex 32
+```
+
+Copy the output to `WEBHOOK_HMAC_KEY`.
+
+## Webhook events
+
+The server receives these WhatsApp events:
+
+| Event | Description |
+|-------|-------------|
+| `message` | New incoming message |
+| `message.ack` | Message delivery/read status |
+| `message.reaction` | Reaction added to message |
+| `chat.archive` | Chat archived/unarchived |
+| `group.join` | Someone joined a group |
+| `group.leave` | Someone left a group |
+| `presence.update` | Online/typing status change |
+
+## Security
+
+### HMAC signature validation
+
+When `WEBHOOK_HMAC_KEY` is set, the server validates incoming webhook signatures:
+
+1. WAHA signs each webhook payload with your secret
+2. The MCP server verifies the signature before processing
+3. Invalid signatures are rejected
+
+This prevents unauthorized webhook calls.
+
+### Best practices
+
+- Always set `WEBHOOK_HMAC_KEY` in production
+- Use a strong, random secret (32+ characters)
+- Keep your ngrok token private
+- Monitor webhook logs for suspicious activity
+
+## Troubleshooting
+
+### Webhooks not receiving events
+
+1. Check that `WEBHOOK_ENABLED=true`
+2. Verify ngrok is running (check server logs)
+3. Ensure WAHA is configured to send webhooks to the ngrok URL
+4. Check firewall isn't blocking the webhook port
+
+### ngrok connection issues
+
+- Verify your auth token is correct
+- Check ngrok service status at [status.ngrok.com](https://status.ngrok.com)
+- Try restarting the MCP server
+
+### Signature validation failures
+
+- Ensure `WEBHOOK_HMAC_KEY` matches in both WAHA and MCP server
+- Check for whitespace or encoding issues in the key
+
+## Manual webhook setup
+
+If you prefer not to use ngrok, you can:
+
+1. Set `WEBHOOK_AUTO_START=false`
+2. Expose port 3001 through your own reverse proxy
+3. Configure WAHA to send webhooks to your public URL
+
+```bash
+WEBHOOK_ENABLED=true
+WEBHOOK_PORT=3001
+WEBHOOK_AUTO_START=false
+WEBHOOK_HMAC_KEY=your-secret-key
+```
