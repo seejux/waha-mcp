@@ -1,0 +1,161 @@
+---
+title: Chat management
+description: Tools for managing WhatsApp chats and messages
+---
+
+# Chat management
+
+Tools for reading, organizing, and managing your WhatsApp conversations.
+
+## waha_get_chats
+
+Get an overview of recent WhatsApp chats with last message preview and unread count.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `limit` | number | No | Number of chats (default: 10, max: 100) |
+| `offset` | number | No | Pagination offset |
+| `chatIds` | string[] | No | Filter to specific chat IDs |
+
+```json
+{
+  "limit": 10
+}
+```
+
+## waha_get_messages
+
+Retrieve messages from a specific chat.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `chatId` | string | Yes | Chat ID to get messages from |
+| `limit` | number | No | Number of messages (default: 10, max: 100) |
+| `offset` | number | No | Pagination offset |
+| `downloadMedia` | boolean | No | Download media files (default: false) |
+
+```json
+{
+  "chatId": "1234567890@c.us",
+  "limit": 20
+}
+```
+
+## waha_mark_chat_read
+
+Mark messages in a chat as read.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `chatId` | string | Yes | Chat ID to mark as read |
+| `messages` | number | No | Number of recent messages (default: 30) |
+| `days` | number | No | Mark messages from last N days (default: 7) |
+
+```json
+{
+  "chatId": "1234567890@c.us",
+  "messages": 30
+}
+```
+
+## waha_mark_chat_unread
+
+Mark a chat as unread to add an unread indicator.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `chatId` | string | Yes | Chat ID to mark as unread |
+
+```json
+{
+  "chatId": "1234567890@c.us"
+}
+```
+
+## waha_archive_chat
+
+Archive a chat to hide it from the main chat list.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `chatId` | string | Yes | Chat ID to archive |
+
+```json
+{
+  "chatId": "1234567890@c.us"
+}
+```
+
+## waha_unarchive_chat
+
+Unarchive a chat to move it back to the main list.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `chatId` | string | Yes | Chat ID to unarchive |
+
+```json
+{
+  "chatId": "1234567890@c.us"
+}
+```
+
+## waha_get_chat_picture
+
+Get the profile picture URL for a chat.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `chatId` | string | Yes | Chat ID |
+| `refresh` | boolean | No | Bypass 24-hour cache (default: false) |
+
+```json
+{
+  "chatId": "1234567890@c.us"
+}
+```
+
+## waha_clear_chat_messages
+
+Clear all messages from a chat.
+
+<Warning>
+This is a destructive operation that cannot be undone.
+</Warning>
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `chatId` | string | Yes | Chat ID to clear |
+
+```json
+{
+  "chatId": "1234567890@c.us"
+}
+```
+
+## waha_delete_chat
+
+Delete a chat completely.
+
+<Warning>
+This is a destructive operation that cannot be undone.
+</Warning>
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `chatId` | string | Yes | Chat ID to delete |
+
+```json
+{
+  "chatId": "1234567890@c.us"
+}
+```
+
+## Chat ID format
+
+WhatsApp chat IDs have specific formats:
+
+- **Individual chats**: `<phone_number>@c.us` (e.g., `1234567890@c.us`)
+- **Group chats**: `<group_id>@g.us` (e.g., `123456789012345678@g.us`)
+
+Use `waha_get_chats` to discover chat IDs for your conversations.
