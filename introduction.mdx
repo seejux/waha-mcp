@@ -1,0 +1,68 @@
+---
+title: Introduction
+description: A Model Context Protocol (MCP) server for WhatsApp integration via WAHA
+---
+
+# WAHA MCP Server
+
+A Model Context Protocol (MCP) server that enables AI assistants to interact with WhatsApp through the [WAHA (WhatsApp HTTP API)](https://waha.devlike.pro/) platform.
+
+## What is this?
+
+WAHA MCP Server bridges AI assistants like Claude with WhatsApp, allowing them to:
+
+- **Read chats and messages** - Get an overview of recent conversations and retrieve message history
+- **Send messages** - Send text, media, locations, and contacts
+- **Manage groups** - Create groups, add/remove members, and configure settings
+- **Handle contacts** - Look up contact information and manage your contact list
+- **Track presence** - Monitor online/offline status and typing indicators
+
+## How it works
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  Claude Desktop │────▶│  WAHA MCP Server│────▶│   WAHA Server   │
+│  (MCP Client)   │◀────│                 │◀────│  (WhatsApp API) │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+```
+
+1. **Claude Desktop** (or any MCP client) connects to the WAHA MCP Server
+2. **WAHA MCP Server** translates MCP tool calls into WAHA API requests
+3. **WAHA Server** handles the actual WhatsApp communication
+
+## Features
+
+<CardGroup cols={2}>
+  <Card title="Chat management" icon="comments">
+    Get chat overviews, read messages, mark as read, archive, and delete chats
+  </Card>
+  <Card title="Rich messaging" icon="paper-plane">
+    Send text, images, videos, documents, audio, locations, and contact cards
+  </Card>
+  <Card title="Group operations" icon="users">
+    Create groups, manage members, set permissions, and handle invites
+  </Card>
+  <Card title="Real-time webhooks" icon="bolt">
+    Receive instant notifications for new messages and events via ngrok
+  </Card>
+</CardGroup>
+
+## Prerequisites
+
+Before you begin, you need:
+
+- **Node.js 18+** installed on your system
+- **A running WAHA instance** - See [WAHA documentation](https://waha.devlike.pro/) for setup
+- **WAHA API credentials** - Base URL and API key from your WAHA instance
+- **An active WhatsApp session** - Connected via WAHA
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get up and running in 5 minutes
+  </Card>
+  <Card title="Configuration" icon="gear" href="/configuration">
+    Configure environment variables and webhooks
+  </Card>
+</CardGroup>
