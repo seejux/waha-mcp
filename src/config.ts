@@ -6,7 +6,7 @@ dotenv.config({ debug: false });
 export interface WAHAConfig {
   wahaBaseUrl: string;
   wahaApiKey: string;
-  wahaSession: string;
+  wahaDefaultSession: string; // Default session to use when not specified
   webhook: {
     enabled: boolean;
     port: number;
@@ -22,7 +22,7 @@ export interface WAHAConfig {
 function loadConfig(): WAHAConfig {
   const wahaBaseUrl = process.env.WAHA_BASE_URL;
   const wahaApiKey = process.env.WAHA_API_KEY;
-  const wahaSession = process.env.WAHA_SESSION || "default";
+  const wahaDefaultSession = process.env.WAHA_SESSION || "default";
 
   // Validate required configuration
   if (!wahaBaseUrl) {
@@ -52,7 +52,7 @@ function loadConfig(): WAHAConfig {
   return {
     wahaBaseUrl: normalizedBaseUrl,
     wahaApiKey,
-    wahaSession,
+    wahaDefaultSession,
     webhook: {
       enabled: webhookEnabled,
       port: webhookPort,

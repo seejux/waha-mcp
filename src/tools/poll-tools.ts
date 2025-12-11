@@ -11,6 +11,11 @@ export const pollTools = [
     inputSchema: {
       type: "object" as const,
       properties: {
+        session: {
+          type: "string" as const,
+          description:
+            "WhatsApp session name (optional, defaults to configured WAHA_SESSION if not provided)",
+        },
         chatId: {
           type: "string" as const,
           description:
@@ -53,6 +58,11 @@ export const pollTools = [
     inputSchema: {
       type: "object" as const,
       properties: {
+        session: {
+          type: "string" as const,
+          description:
+            "WhatsApp session name (optional, defaults to configured WAHA_SESSION if not provided)",
+        },
         chatId: {
           type: "string" as const,
           description:

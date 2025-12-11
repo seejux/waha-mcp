@@ -48,8 +48,11 @@ export class ChatsOverviewResource extends BaseResource {
       chatIds = params.ids.split(",").map(id => id.trim());
     }
 
+    // Get session from query params or use default
+    const session = params.session || (await import("../../config.js")).config.wahaDefaultSession;
+
     // Fetch chats from WAHA API
-    const chats = await this.wahaClient.getChatsOverview({
+    const chats = await this.wahaClient.getChatsOverview(session, {
       limit,
       offset,
       ids: chatIds,

@@ -11,6 +11,11 @@ export const profileTools = [
     inputSchema: {
       type: "object" as const,
       properties: {
+        session: {
+          type: "string" as const,
+          description:
+            "WhatsApp session name (optional, defaults to configured WAHA_SESSION if not provided)",
+        },
         name: {
           type: "string" as const,
           description: "Your new profile name (display name)",
@@ -26,6 +31,11 @@ export const profileTools = [
     inputSchema: {
       type: "object" as const,
       properties: {
+        session: {
+          type: "string" as const,
+          description:
+            "WhatsApp session name (optional, defaults to configured WAHA_SESSION if not provided)",
+        },
         status: {
           type: "string" as const,
           description: "Your new profile status (About text)",
@@ -45,6 +55,11 @@ export const profileTools = [
           type: "object" as const,
           description: "Profile picture file",
           properties: {
+        session: {
+          type: "string" as const,
+          description:
+            "WhatsApp session name (optional, defaults to configured WAHA_SESSION if not provided)",
+        },
             url: {
               type: "string" as const,
               description: "URL to the image file",
@@ -69,7 +84,12 @@ export const profileTools = [
       "Delete your WhatsApp profile picture. This will remove your current profile picture and reset it to the default.",
     inputSchema: {
       type: "object" as const,
-      properties: {},
+      properties: {
+        session: {
+          type: "string" as const,
+          description:
+            "WhatsApp session name (optional, defaults to configured WAHA_SESSION if not provided)",
+        },},
     },
   },
 ];

@@ -62,14 +62,17 @@ export class WebhookManager {
   private wahaClient: WAHAClient;
   private config: WebhookManagerConfig;
   private handlers: BaseEventHandler[];
+  private defaultSession: string;
 
   constructor(
     mcpServer: Server,
     wahaClient: WAHAClient,
-    config: WebhookManagerConfig
+    config: WebhookManagerConfig,
+    defaultSession: string
   ) {
     this.wahaClient = wahaClient;
     this.config = config;
+    this.defaultSession = defaultSession;
 
     // Initialize webhook server
     this.webhookServer = new WebhookServer(config.port, config.hmacKey);
@@ -135,7 +138,7 @@ export class WebhookManager {
 
       // Configure WAHA with webhook
       console.error("[WebhookManager] Configuring WAHA session...");
-      await this.wahaClient.updateSessionWebhook({
+      await this.wahaClient.updateSessionWebhook(this.defaultSession, {
         url: webhookUrl,
         events: [
           WAHAEventType.MESSAGE,
@@ -189,7 +192,8 @@ export class WebhookManager {
 export function createWebhookManager(
   mcpServer: Server,
   wahaClient: WAHAClient,
-  config: WebhookManagerConfig
+  config: WebhookManagerConfig,
+  defaultSession: string
 ): WebhookManager {
-  return new WebhookManager(mcpServer, wahaClient, config);
+  return new WebhookManager(mcpServer, wahaClient, config, defaultSession);
 }

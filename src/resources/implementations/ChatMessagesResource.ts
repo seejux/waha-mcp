@@ -69,8 +69,11 @@ export class ChatMessagesResource extends BaseResource {
       filters.fromMe = this.getBooleanParam(params, "fromMe", false);
     }
 
+    // Get session from query params or use default
+    const session = params.session || (await import("../../config.js")).config.wahaDefaultSession;
+
     // Fetch messages from WAHA API
-    const messages = await this.wahaClient.getChatMessages({
+    const messages = await this.wahaClient.getChatMessages(session, {
       chatId,
       limit,
       offset,

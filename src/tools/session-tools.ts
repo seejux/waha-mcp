@@ -11,6 +11,11 @@ export const sessionTools = [
     inputSchema: {
       type: "object" as const,
       properties: {
+        session: {
+          type: "string" as const,
+          description:
+            "WhatsApp session name (optional, defaults to configured WAHA_SESSION if not provided)",
+        },
         all: {
           type: "boolean" as const,
           description:
@@ -27,6 +32,11 @@ export const sessionTools = [
     inputSchema: {
       type: "object" as const,
       properties: {
+        session: {
+          type: "string" as const,
+          description:
+            "WhatsApp session name (optional, defaults to configured WAHA_SESSION if not provided)",
+        },
         expand: {
           type: "array" as const,
           items: { type: "string" as const },
@@ -43,6 +53,11 @@ export const sessionTools = [
     inputSchema: {
       type: "object" as const,
       properties: {
+        session: {
+          type: "string" as const,
+          description:
+            "WhatsApp session name (optional, defaults to configured WAHA_SESSION if not provided)",
+        },
         name: {
           type: "string" as const,
           description:
@@ -105,7 +120,12 @@ export const sessionTools = [
       "Start a stopped WhatsApp session. The session will enter STARTING status and then require authentication via QR code or pairing code if not authenticated yet.",
     inputSchema: {
       type: "object" as const,
-      properties: {},
+      properties: {
+        session: {
+          type: "string" as const,
+          description:
+            "WhatsApp session name (optional, defaults to configured WAHA_SESSION if not provided)",
+        },},
     },
   },
   {
@@ -114,7 +134,12 @@ export const sessionTools = [
       "Stop a running WhatsApp session. This does not logout or delete the session, just stops it temporarily. Session data and configuration are preserved.",
     inputSchema: {
       type: "object" as const,
-      properties: {},
+      properties: {
+        session: {
+          type: "string" as const,
+          description:
+            "WhatsApp session name (optional, defaults to configured WAHA_SESSION if not provided)",
+        },},
     },
   },
   {
@@ -123,7 +148,12 @@ export const sessionTools = [
       "Restart a WhatsApp session. This will stop and then start the session again. Useful for applying configuration changes or recovering from errors.",
     inputSchema: {
       type: "object" as const,
-      properties: {},
+      properties: {
+        session: {
+          type: "string" as const,
+          description:
+            "WhatsApp session name (optional, defaults to configured WAHA_SESSION if not provided)",
+        },},
     },
   },
   {
@@ -132,7 +162,12 @@ export const sessionTools = [
       "Logout from a WhatsApp session. This removes authentication data and disconnects the device, but keeps the session configuration. You'll need to scan QR code again after logout.",
     inputSchema: {
       type: "object" as const,
-      properties: {},
+      properties: {
+        session: {
+          type: "string" as const,
+          description:
+            "WhatsApp session name (optional, defaults to configured WAHA_SESSION if not provided)",
+        },},
     },
   },
   {
@@ -141,7 +176,12 @@ export const sessionTools = [
       "Delete a WhatsApp session completely. This removes both authentication data and session configuration. WARNING: This is a destructive operation that cannot be undone.",
     inputSchema: {
       type: "object" as const,
-      properties: {},
+      properties: {
+        session: {
+          type: "string" as const,
+          description:
+            "WhatsApp session name (optional, defaults to configured WAHA_SESSION if not provided)",
+        },},
     },
   },
   {
@@ -150,7 +190,12 @@ export const sessionTools = [
       "Get information about the authenticated WhatsApp account for this session. Returns phone number and push name. Returns null if not authenticated.",
     inputSchema: {
       type: "object" as const,
-      properties: {},
+      properties: {
+        session: {
+          type: "string" as const,
+          description:
+            "WhatsApp session name (optional, defaults to configured WAHA_SESSION if not provided)",
+        },},
     },
   },
   {
@@ -160,6 +205,11 @@ export const sessionTools = [
     inputSchema: {
       type: "object" as const,
       properties: {
+        session: {
+          type: "string" as const,
+          description:
+            "WhatsApp session name (optional, defaults to configured WAHA_SESSION if not provided)",
+        },
         format: {
           type: "string" as const,
           description:
@@ -177,6 +227,11 @@ export const sessionTools = [
     inputSchema: {
       type: "object" as const,
       properties: {
+        session: {
+          type: "string" as const,
+          description:
+            "WhatsApp session name (optional, defaults to configured WAHA_SESSION if not provided)",
+        },
         phoneNumber: {
           type: "string" as const,
           description: "Phone number with country code (e.g., '1234567890')",
@@ -192,6 +247,11 @@ export const sessionTools = [
     inputSchema: {
       type: "object" as const,
       properties: {
+        session: {
+          type: "string" as const,
+          description:
+            "WhatsApp session name (optional, defaults to configured WAHA_SESSION if not provided)",
+        },
         format: {
           type: "string" as const,
           description: "Screenshot format: 'image' (binary) or 'base64'",

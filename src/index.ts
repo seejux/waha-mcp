@@ -31,11 +31,10 @@ class WAHAMCPServer {
   private webhookManager?: WebhookManager;
 
   constructor() {
-    // Initialize WAHA API client
+    // Initialize WAHA API client (without session - will be passed per-call)
     this.wahaClient = new WAHAClient(
       config.wahaBaseUrl,
-      config.wahaApiKey,
-      config.wahaSession
+      config.wahaApiKey
     );
 
     // Initialize resource manager with caching enabled (5 min TTL)
@@ -1167,17 +1166,17 @@ class WAHAMCPServer {
           case "waha_create_session":
             return await newHandlers.handleCreateSession(this.wahaClient, args);
           case "waha_start_session":
-            return await newHandlers.handleStartSession(this.wahaClient);
+            return await newHandlers.handleStartSession(this.wahaClient, args);
           case "waha_stop_session":
-            return await newHandlers.handleStopSession(this.wahaClient);
+            return await newHandlers.handleStopSession(this.wahaClient, args);
           case "waha_restart_session":
-            return await newHandlers.handleRestartSession(this.wahaClient);
+            return await newHandlers.handleRestartSession(this.wahaClient, args);
           case "waha_logout_session":
-            return await newHandlers.handleLogoutSession(this.wahaClient);
+            return await newHandlers.handleLogoutSession(this.wahaClient, args);
           case "waha_delete_session":
-            return await newHandlers.handleDeleteSession(this.wahaClient);
+            return await newHandlers.handleDeleteSession(this.wahaClient, args);
           case "waha_get_session_me":
-            return await newHandlers.handleGetSessionMe(this.wahaClient);
+            return await newHandlers.handleGetSessionMe(this.wahaClient, args);
           case "waha_get_qr_code":
             return await newHandlers.handleGetQRCode(this.wahaClient, args);
           case "waha_request_pairing_code":
@@ -1197,13 +1196,13 @@ class WAHAMCPServer {
           case "waha_send_media_status":
             return await newHandlers.handleSendMediaStatus(this.wahaClient, args);
           case "waha_get_statuses":
-            return await newHandlers.handleGetStatuses(this.wahaClient);
+            return await newHandlers.handleGetStatuses(this.wahaClient, args);
           case "waha_delete_status":
             return await newHandlers.handleDeleteStatus(this.wahaClient, args);
           
           // === NEW HANDLERS: Labels ===
           case "waha_get_labels":
-            return await newHandlers.handleGetLabels(this.wahaClient);
+            return await newHandlers.handleGetLabels(this.wahaClient, args);
           case "waha_get_chat_labels":
             return await newHandlers.handleGetChatLabels(this.wahaClient, args);
           case "waha_put_chat_labels":
@@ -1225,7 +1224,7 @@ class WAHAMCPServer {
           case "waha_set_my_profile_picture":
             return await newHandlers.handleSetMyProfilePicture(this.wahaClient, args);
           case "waha_delete_my_profile_picture":
-            return await newHandlers.handleDeleteMyProfilePicture(this.wahaClient);
+            return await newHandlers.handleDeleteMyProfilePicture(this.wahaClient, args);
           
           default:
             throw new Error(`Unknown tool: ${name}`);
@@ -1285,11 +1284,12 @@ class WAHAMCPServer {
    * Handle waha_get_chats tool
    */
   private async handleGetChats(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const limit = args.limit || 10;
     const offset = args.offset;
     const chatIds = args.chatIds;
 
-    const chats = await this.wahaClient.getChatsOverview({
+    const chats = await this.wahaClient.getChatsOverview(session, {
       limit,
       offset,
       ids: chatIds,
@@ -1311,6 +1311,7 @@ class WAHAMCPServer {
    * Handle waha_get_messages tool
    */
   private async handleGetMessages(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const chatId = args.chatId;
     const limit = args.limit || 10;
     const offset = args.offset;
@@ -1320,7 +1321,7 @@ class WAHAMCPServer {
       throw new Error("chatId is required");
     }
 
-    const messages = await this.wahaClient.getChatMessages({
+    const messages = await this.wahaClient.getChatMessages(session, {
       chatId,
       limit,
       offset,
@@ -1343,6 +1344,7 @@ class WAHAMCPServer {
    * Handle waha_send_message tool
    */
   private async handleSendMessage(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const chatId = args.chatId;
     const text = args.text;
     const replyTo = args.replyTo;
@@ -1356,7 +1358,7 @@ class WAHAMCPServer {
       throw new Error("text is required");
     }
 
-    const response = await this.wahaClient.sendTextMessage({
+    const response = await this.wahaClient.sendTextMessage(session, {
       chatId,
       text,
       reply_to: replyTo,
@@ -1383,6 +1385,7 @@ class WAHAMCPServer {
    * Handle waha_mark_chat_read tool
    */
   private async handleMarkChatRead(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const chatId = args.chatId;
     const messages = args.messages || 30;
     const days = args.days || 7;
@@ -1391,7 +1394,7 @@ class WAHAMCPServer {
       throw new Error("chatId is required");
     }
 
-    await this.wahaClient.markChatAsRead({
+    await this.wahaClient.markChatAsRead(session, {
       chatId,
       messages,
       days,
@@ -1411,6 +1414,7 @@ class WAHAMCPServer {
    * Handle waha_delete_message tool
    */
   private async handleDeleteMessage(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const chatId = args.chatId;
     const messageId = args.messageId;
 
@@ -1422,7 +1426,7 @@ class WAHAMCPServer {
       throw new Error("messageId is required");
     }
 
-    await this.wahaClient.deleteMessage(chatId, messageId);
+    await this.wahaClient.deleteMessage(session, chatId, messageId);
 
     return {
       content: [
@@ -1438,6 +1442,7 @@ class WAHAMCPServer {
    * Handle waha_edit_message tool
    */
   private async handleEditMessage(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const chatId = args.chatId;
     const messageId = args.messageId;
     const text = args.text;
@@ -1456,7 +1461,7 @@ class WAHAMCPServer {
       throw new Error("text is required");
     }
 
-    await this.wahaClient.editMessage({
+    await this.wahaClient.editMessage(session, {
       chatId,
       messageId,
       text,
@@ -1478,6 +1483,7 @@ class WAHAMCPServer {
    * Handle waha_pin_message tool
    */
   private async handlePinMessage(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const chatId = args.chatId;
     const messageId = args.messageId;
     const duration = args.duration || 86400; // Default 24 hours
@@ -1490,7 +1496,7 @@ class WAHAMCPServer {
       throw new Error("messageId is required");
     }
 
-    await this.wahaClient.pinMessage({
+    await this.wahaClient.pinMessage(session, {
       chatId,
       messageId,
       duration,
@@ -1510,6 +1516,7 @@ class WAHAMCPServer {
    * Handle waha_unpin_message tool
    */
   private async handleUnpinMessage(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const chatId = args.chatId;
     const messageId = args.messageId;
 
@@ -1521,7 +1528,7 @@ class WAHAMCPServer {
       throw new Error("messageId is required");
     }
 
-    await this.wahaClient.unpinMessage(chatId, messageId);
+    await this.wahaClient.unpinMessage(session, chatId, messageId);
 
     return {
       content: [
@@ -1537,13 +1544,14 @@ class WAHAMCPServer {
    * Handle waha_clear_chat_messages tool
    */
   private async handleClearChatMessages(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const chatId = args.chatId;
 
     if (!chatId) {
       throw new Error("chatId is required");
     }
 
-    await this.wahaClient.clearChatMessages(chatId);
+    await this.wahaClient.clearChatMessages(session, chatId);
 
     return {
       content: [
@@ -1559,13 +1567,14 @@ class WAHAMCPServer {
    * Handle waha_delete_chat tool
    */
   private async handleDeleteChat(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const chatId = args.chatId;
 
     if (!chatId) {
       throw new Error("chatId is required");
     }
 
-    await this.wahaClient.deleteChat(chatId);
+    await this.wahaClient.deleteChat(session, chatId);
 
     return {
       content: [
@@ -1581,13 +1590,14 @@ class WAHAMCPServer {
    * Handle waha_archive_chat tool
    */
   private async handleArchiveChat(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const chatId = args.chatId;
 
     if (!chatId) {
       throw new Error("chatId is required");
     }
 
-    await this.wahaClient.archiveChat(chatId);
+    await this.wahaClient.archiveChat(session, chatId);
 
     return {
       content: [
@@ -1603,13 +1613,14 @@ class WAHAMCPServer {
    * Handle waha_unarchive_chat tool
    */
   private async handleUnarchiveChat(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const chatId = args.chatId;
 
     if (!chatId) {
       throw new Error("chatId is required");
     }
 
-    await this.wahaClient.unarchiveChat(chatId);
+    await this.wahaClient.unarchiveChat(session, chatId);
 
     return {
       content: [
@@ -1625,13 +1636,14 @@ class WAHAMCPServer {
    * Handle waha_mark_chat_unread tool
    */
   private async handleMarkChatUnread(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const chatId = args.chatId;
 
     if (!chatId) {
       throw new Error("chatId is required");
     }
 
-    await this.wahaClient.markChatUnread(chatId);
+    await this.wahaClient.markChatUnread(session, chatId);
 
     return {
       content: [
@@ -1647,6 +1659,7 @@ class WAHAMCPServer {
    * Handle waha_get_chat_picture tool
    */
   private async handleGetChatPicture(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const chatId = args.chatId;
     const refresh = args.refresh || false;
 
@@ -1654,7 +1667,7 @@ class WAHAMCPServer {
       throw new Error("chatId is required");
     }
 
-    const result = await this.wahaClient.getChatPicture({
+    const result = await this.wahaClient.getChatPicture(session, {
       chatId,
       refresh,
     });
@@ -1673,6 +1686,7 @@ class WAHAMCPServer {
    * Handle waha_send_media tool
    */
   private async handleSendMedia(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const chatId = args.chatId;
     const mediaType = args.mediaType;
     const fileUrl = args.fileUrl;
@@ -1709,7 +1723,7 @@ class WAHAMCPServer {
       file.data = fileData;
     }
 
-    const response = await this.wahaClient.sendMedia({
+    const response = await this.wahaClient.sendMedia(session, {
       chatId,
       file,
       mediaType,
@@ -1737,6 +1751,7 @@ class WAHAMCPServer {
    * Handle waha_send_audio tool
    */
   private async handleSendAudio(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const chatId = args.chatId;
     const fileUrl = args.fileUrl;
     const fileData = args.fileData;
@@ -1767,7 +1782,7 @@ class WAHAMCPServer {
       file.data = fileData;
     }
 
-    const response = await this.wahaClient.sendAudio({
+    const response = await this.wahaClient.sendAudio(session, {
       chatId,
       file,
       reply_to: replyTo,
@@ -1793,6 +1808,7 @@ class WAHAMCPServer {
    * Handle waha_send_location tool
    */
   private async handleSendLocation(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const chatId = args.chatId;
     const latitude = args.latitude;
     const longitude = args.longitude;
@@ -1807,7 +1823,7 @@ class WAHAMCPServer {
       throw new Error("latitude and longitude are required");
     }
 
-    const response = await this.wahaClient.sendLocation({
+    const response = await this.wahaClient.sendLocation(session, {
       chatId,
       latitude,
       longitude,
@@ -1835,6 +1851,7 @@ class WAHAMCPServer {
    * Handle waha_send_contact tool
    */
   private async handleSendContact(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const chatId = args.chatId;
     const vcard = args.vcard;
     const replyTo = args.replyTo;
@@ -1847,7 +1864,7 @@ class WAHAMCPServer {
       throw new Error("vcard is required");
     }
 
-    const response = await this.wahaClient.sendContact({
+    const response = await this.wahaClient.sendContact(session, {
       chatId,
       contacts: [{ vcard }],
       reply_to: replyTo,
@@ -1873,6 +1890,7 @@ class WAHAMCPServer {
    * Handle waha_react_to_message tool
    */
   private async handleReactToMessage(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const messageId = args.messageId;
     const reaction = args.reaction;
 
@@ -1884,7 +1902,7 @@ class WAHAMCPServer {
       throw new Error("reaction is required");
     }
 
-    await this.wahaClient.reactToMessage({
+    await this.wahaClient.reactToMessage(session, {
       messageId,
       reaction,
     });
@@ -1905,6 +1923,7 @@ class WAHAMCPServer {
    * Handle waha_star_message tool
    */
   private async handleStarMessage(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const chatId = args.chatId;
     const messageId = args.messageId;
     const star = args.star;
@@ -1921,7 +1940,7 @@ class WAHAMCPServer {
       throw new Error("star is required");
     }
 
-    await this.wahaClient.starMessage({
+    await this.wahaClient.starMessage(session, {
       chatId,
       messageId,
       star,
@@ -1943,7 +1962,8 @@ class WAHAMCPServer {
    * Handle waha_get_groups tool
    */
   private async handleGetGroups(args: any) {
-    const groups = await this.wahaClient.getGroups({
+    const session = (args as any).session || config.wahaDefaultSession;
+    const groups = await this.wahaClient.getGroups(session, {
       sortBy: args.sortBy,
       sortOrder: args.sortOrder,
       limit: args.limit,
@@ -1965,13 +1985,14 @@ class WAHAMCPServer {
    * Handle waha_get_group_info tool
    */
   private async handleGetGroupInfo(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const groupId = args.groupId;
 
     if (!groupId) {
       throw new Error("groupId is required");
     }
 
-    const groupInfo = await this.wahaClient.getGroupInfo(groupId);
+    const groupInfo = await this.wahaClient.getGroupInfo(session, groupId);
 
     return {
       content: [
@@ -1987,6 +2008,7 @@ class WAHAMCPServer {
    * Handle waha_get_group_picture tool
    */
   private async handleGetGroupPicture(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const groupId = args.groupId;
     const refresh = args.refresh || false;
 
@@ -1994,7 +2016,7 @@ class WAHAMCPServer {
       throw new Error("groupId is required");
     }
 
-    const result = await this.wahaClient.getGroupPicture({
+    const result = await this.wahaClient.getGroupPicture(session, {
       groupId,
       refresh,
     });
@@ -2013,6 +2035,7 @@ class WAHAMCPServer {
    * Handle waha_set_group_picture tool
    */
   private async handleSetGroupPicture(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const groupId = args.groupId;
     const fileUrl = args.fileUrl;
     const fileData = args.fileData;
@@ -2029,7 +2052,7 @@ class WAHAMCPServer {
     if (fileUrl) file.url = fileUrl;
     if (fileData) file.data = fileData;
 
-    await this.wahaClient.setGroupPicture({
+    await this.wahaClient.setGroupPicture(session, {
       groupId,
       file,
     });
@@ -2048,13 +2071,14 @@ class WAHAMCPServer {
    * Handle waha_delete_group_picture tool
    */
   private async handleDeleteGroupPicture(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const groupId = args.groupId;
 
     if (!groupId) {
       throw new Error("groupId is required");
     }
 
-    await this.wahaClient.deleteGroupPicture(groupId);
+    await this.wahaClient.deleteGroupPicture(session, groupId);
 
     return {
       content: [
@@ -2070,6 +2094,7 @@ class WAHAMCPServer {
    * Handle waha_create_group tool
    */
   private async handleCreateGroup(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const name = args.name;
     const participantsStr = args.participants;
 
@@ -2083,7 +2108,7 @@ class WAHAMCPServer {
 
     const participants = JSON.parse(participantsStr);
 
-    const result = await this.wahaClient.createGroup({
+    const result = await this.wahaClient.createGroup(session, {
       name,
       participants,
     });
@@ -2102,6 +2127,7 @@ class WAHAMCPServer {
    * Handle waha_update_group_subject tool
    */
   private async handleUpdateGroupSubject(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const groupId = args.groupId;
     const subject = args.subject;
 
@@ -2113,7 +2139,7 @@ class WAHAMCPServer {
       throw new Error("subject is required");
     }
 
-    await this.wahaClient.updateGroupSubject({
+    await this.wahaClient.updateGroupSubject(session, {
       groupId,
       subject,
     });
@@ -2132,6 +2158,7 @@ class WAHAMCPServer {
    * Handle waha_update_group_description tool
    */
   private async handleUpdateGroupDescription(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const groupId = args.groupId;
     const description = args.description;
 
@@ -2143,7 +2170,7 @@ class WAHAMCPServer {
       throw new Error("description is required");
     }
 
-    await this.wahaClient.updateGroupDescription({
+    await this.wahaClient.updateGroupDescription(session, {
       groupId,
       description,
     });
@@ -2162,13 +2189,14 @@ class WAHAMCPServer {
    * Handle waha_leave_group tool
    */
   private async handleLeaveGroup(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const groupId = args.groupId;
 
     if (!groupId) {
       throw new Error("groupId is required");
     }
 
-    await this.wahaClient.leaveGroup(groupId);
+    await this.wahaClient.leaveGroup(session, groupId);
 
     return {
       content: [
@@ -2184,13 +2212,14 @@ class WAHAMCPServer {
    * Handle waha_get_group_participants tool
    */
   private async handleGetGroupParticipants(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const groupId = args.groupId;
 
     if (!groupId) {
       throw new Error("groupId is required");
     }
 
-    const participants = await this.wahaClient.getGroupParticipants(groupId);
+    const participants = await this.wahaClient.getGroupParticipants(session, groupId);
 
     return {
       content: [
@@ -2206,6 +2235,7 @@ class WAHAMCPServer {
    * Handle waha_add_group_participants tool
    */
   private async handleAddGroupParticipants(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const groupId = args.groupId;
     const participantsStr = args.participants;
 
@@ -2219,7 +2249,7 @@ class WAHAMCPServer {
 
     const participants = JSON.parse(participantsStr);
 
-    const result = await this.wahaClient.addGroupParticipants({
+    const result = await this.wahaClient.addGroupParticipants(session, {
       groupId,
       participants,
     });
@@ -2238,6 +2268,7 @@ class WAHAMCPServer {
    * Handle waha_remove_group_participants tool
    */
   private async handleRemoveGroupParticipants(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const groupId = args.groupId;
     const participantsStr = args.participants;
 
@@ -2251,7 +2282,7 @@ class WAHAMCPServer {
 
     const participants = JSON.parse(participantsStr);
 
-    const result = await this.wahaClient.removeGroupParticipants({
+    const result = await this.wahaClient.removeGroupParticipants(session, {
       groupId,
       participants,
     });
@@ -2270,6 +2301,7 @@ class WAHAMCPServer {
    * Handle waha_promote_group_admin tool
    */
   private async handlePromoteGroupAdmin(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const groupId = args.groupId;
     const participantsStr = args.participants;
 
@@ -2283,7 +2315,7 @@ class WAHAMCPServer {
 
     const participants = JSON.parse(participantsStr);
 
-    const result = await this.wahaClient.promoteGroupAdmin({
+    const result = await this.wahaClient.promoteGroupAdmin(session, {
       groupId,
       participants,
     });
@@ -2302,6 +2334,7 @@ class WAHAMCPServer {
    * Handle waha_demote_group_admin tool
    */
   private async handleDemoteGroupAdmin(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const groupId = args.groupId;
     const participantsStr = args.participants;
 
@@ -2315,7 +2348,7 @@ class WAHAMCPServer {
 
     const participants = JSON.parse(participantsStr);
 
-    const result = await this.wahaClient.demoteGroupAdmin({
+    const result = await this.wahaClient.demoteGroupAdmin(session, {
       groupId,
       participants,
     });
@@ -2334,13 +2367,14 @@ class WAHAMCPServer {
    * Handle waha_get_group_invite_code tool
    */
   private async handleGetGroupInviteCode(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const groupId = args.groupId;
 
     if (!groupId) {
       throw new Error("groupId is required");
     }
 
-    const result = await this.wahaClient.getGroupInviteCode(groupId);
+    const result = await this.wahaClient.getGroupInviteCode(session, groupId);
 
     return {
       content: [
@@ -2356,13 +2390,14 @@ class WAHAMCPServer {
    * Handle waha_revoke_group_invite_code tool
    */
   private async handleRevokeGroupInviteCode(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const groupId = args.groupId;
 
     if (!groupId) {
       throw new Error("groupId is required");
     }
 
-    const result = await this.wahaClient.revokeGroupInviteCode(groupId);
+    const result = await this.wahaClient.revokeGroupInviteCode(session, groupId);
 
     return {
       content: [
@@ -2378,13 +2413,14 @@ class WAHAMCPServer {
    * Handle waha_join_group tool
    */
   private async handleJoinGroup(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const code = args.code;
 
     if (!code) {
       throw new Error("code is required");
     }
 
-    const result = await this.wahaClient.joinGroup(code);
+    const result = await this.wahaClient.joinGroup(session, code);
 
     return {
       content: [
@@ -2400,13 +2436,14 @@ class WAHAMCPServer {
    * Handle waha_get_group_join_info tool
    */
   private async handleGetGroupJoinInfo(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const code = args.code;
 
     if (!code) {
       throw new Error("code is required");
     }
 
-    const result = await this.wahaClient.getGroupJoinInfo(code);
+    const result = await this.wahaClient.getGroupJoinInfo(session, code);
 
     return {
       content: [
@@ -2422,6 +2459,7 @@ class WAHAMCPServer {
    * Handle waha_set_group_messages_admin_only tool
    */
   private async handleSetGroupMessagesAdminOnly(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const groupId = args.groupId;
     const adminsOnly = args.adminsOnly;
 
@@ -2433,7 +2471,7 @@ class WAHAMCPServer {
       throw new Error("adminsOnly is required");
     }
 
-    await this.wahaClient.setGroupMessagesAdminOnly({
+    await this.wahaClient.setGroupMessagesAdminOnly(session, {
       groupId,
       adminsOnly,
     });
@@ -2452,6 +2490,7 @@ class WAHAMCPServer {
    * Handle waha_set_group_info_admin_only tool
    */
   private async handleSetGroupInfoAdminOnly(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const groupId = args.groupId;
     const adminsOnly = args.adminsOnly;
 
@@ -2463,7 +2502,7 @@ class WAHAMCPServer {
       throw new Error("adminsOnly is required");
     }
 
-    await this.wahaClient.setGroupInfoAdminOnly({
+    await this.wahaClient.setGroupInfoAdminOnly(session, {
       groupId,
       adminsOnly,
     });
@@ -2482,7 +2521,8 @@ class WAHAMCPServer {
    * Handle waha_get_groups_count tool
    */
   private async handleGetGroupsCount(args: any) {
-    const result = await this.wahaClient.getGroupsCount();
+    const session = (args as any).session || config.wahaDefaultSession;
+    const result = await this.wahaClient.getGroupsCount(session, );
 
     return {
       content: [
@@ -2500,13 +2540,14 @@ class WAHAMCPServer {
    * Handle waha_get_contact tool
    */
   private async handleGetContact(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const contactId = args.contactId;
 
     if (!contactId) {
       throw new Error("contactId is required");
     }
 
-    const contact = await this.wahaClient.getContact(contactId);
+    const contact = await this.wahaClient.getContact(session, contactId);
 
     return {
       content: [
@@ -2522,7 +2563,8 @@ class WAHAMCPServer {
    * Handle waha_get_all_contacts tool
    */
   private async handleGetAllContacts(args: any) {
-    const contacts = await this.wahaClient.getAllContacts({
+    const session = (args as any).session || config.wahaDefaultSession;
+    const contacts = await this.wahaClient.getAllContacts(session, {
       sortBy: args.sortBy,
       sortOrder: args.sortOrder,
       limit: args.limit,
@@ -2543,13 +2585,14 @@ class WAHAMCPServer {
    * Handle waha_check_contact_exists tool
    */
   private async handleCheckContactExists(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const phone = args.phone;
 
     if (!phone) {
       throw new Error("phone is required");
     }
 
-    const result = await this.wahaClient.checkContactExists(phone);
+    const result = await this.wahaClient.checkContactExists(session, phone);
 
     return {
       content: [
@@ -2565,13 +2608,14 @@ class WAHAMCPServer {
    * Handle waha_get_contact_about tool
    */
   private async handleGetContactAbout(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const contactId = args.contactId;
 
     if (!contactId) {
       throw new Error("contactId is required");
     }
 
-    const result = await this.wahaClient.getContactAbout(contactId);
+    const result = await this.wahaClient.getContactAbout(session, contactId);
 
     return {
       content: [
@@ -2587,6 +2631,7 @@ class WAHAMCPServer {
    * Handle waha_get_contact_profile_picture tool
    */
   private async handleGetContactProfilePicture(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const contactId = args.contactId;
     const refresh = args.refresh || false;
 
@@ -2594,7 +2639,7 @@ class WAHAMCPServer {
       throw new Error("contactId is required");
     }
 
-    const result = await this.wahaClient.getContactProfilePicture({
+    const result = await this.wahaClient.getContactProfilePicture(session, {
       contactId,
       refresh,
     });
@@ -2613,13 +2658,14 @@ class WAHAMCPServer {
    * Handle waha_block_contact tool
    */
   private async handleBlockContact(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const contactId = args.contactId;
 
     if (!contactId) {
       throw new Error("contactId is required");
     }
 
-    await this.wahaClient.blockContact(contactId);
+    await this.wahaClient.blockContact(session, contactId);
 
     return {
       content: [
@@ -2635,13 +2681,14 @@ class WAHAMCPServer {
    * Handle waha_unblock_contact tool
    */
   private async handleUnblockContact(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const contactId = args.contactId;
 
     if (!contactId) {
       throw new Error("contactId is required");
     }
 
-    await this.wahaClient.unblockContact(contactId);
+    await this.wahaClient.unblockContact(session, contactId);
 
     return {
       content: [
@@ -2659,13 +2706,14 @@ class WAHAMCPServer {
    * Handle waha_get_presence tool
    */
   private async handleGetPresence(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const chatId = args.chatId;
 
     if (!chatId) {
       throw new Error("chatId is required");
     }
 
-    const presence = await this.wahaClient.getPresence(chatId);
+    const presence = await this.wahaClient.getPresence(session, chatId);
 
     return {
       content: [
@@ -2681,13 +2729,14 @@ class WAHAMCPServer {
    * Handle waha_subscribe_presence tool
    */
   private async handleSubscribePresence(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const chatId = args.chatId;
 
     if (!chatId) {
       throw new Error("chatId is required");
     }
 
-    await this.wahaClient.subscribePresence(chatId);
+    await this.wahaClient.subscribePresence(session, chatId);
 
     return {
       content: [
@@ -2703,6 +2752,7 @@ class WAHAMCPServer {
    * Handle waha_set_presence tool
    */
   private async handleSetPresence(args: any) {
+    const session = (args as any).session || config.wahaDefaultSession;
     const chatId = args.chatId;
     const presence = args.presence;
 
@@ -2714,7 +2764,7 @@ class WAHAMCPServer {
       throw new Error("presence is required");
     }
 
-    await this.wahaClient.setPresence({
+    await this.wahaClient.setPresence(session, {
       chatId,
       presence,
     });
@@ -2733,7 +2783,8 @@ class WAHAMCPServer {
    * Handle waha_get_all_presence tool
    */
   private async handleGetAllPresence(args: any) {
-    const presences = await this.wahaClient.getAllPresence();
+    const session = (args as any).session || config.wahaDefaultSession;
+    const presences = await this.wahaClient.getAllPresence(session, );
 
     return {
       content: [
@@ -2775,7 +2826,7 @@ class WAHAMCPServer {
     if (config.webhook.enabled && config.webhook.autoStart) {
       try {
         const { createWebhookManager } = await import("./webhooks/index.js");
-        this.webhookManager = createWebhookManager(this.server, this.wahaClient, config.webhook);
+        this.webhookManager = createWebhookManager(this.server, this.wahaClient, config.webhook, config.wahaDefaultSession);
         await this.webhookManager.start();
       } catch (error) {
         console.error("[WAHAMCPServer] Failed to start webhook system:", error);

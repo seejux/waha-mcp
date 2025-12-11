@@ -17,8 +17,9 @@ import {
  * Session Management Handlers
  */
 export async function handleListSessions(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
   const all = args.all || false;
-  const sessions = await wahaClient.listSessions({ all });
+  const sessions = await wahaClient.listSessions(session, { all });
   const formattedResponse = formatSessions(sessions);
 
   return {
@@ -32,9 +33,10 @@ export async function handleListSessions(wahaClient: WAHAClient, args: any) {
 }
 
 export async function handleGetSession(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
   const expand = args.expand;
-  const session = await wahaClient.getSession({ expand });
-  const formattedResponse = formatSession(session);
+  const sessionInfo = await wahaClient.getSession(session, { expand });
+  const formattedResponse = formatSession(sessionInfo);
 
   return {
     content: [
@@ -47,9 +49,10 @@ export async function handleGetSession(wahaClient: WAHAClient, args: any) {
 }
 
 export async function handleCreateSession(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
   const { name, start, config } = args;
-  const session = await wahaClient.createSession({ name, start, config });
-  const formattedResponse = formatSession(session);
+  const newSession = await wahaClient.createSession(session, { name, start, config });
+  const formattedResponse = formatSession(newSession);
 
   return {
     content: [
@@ -61,9 +64,10 @@ export async function handleCreateSession(wahaClient: WAHAClient, args: any) {
   };
 }
 
-export async function handleStartSession(wahaClient: WAHAClient) {
-  const session = await wahaClient.startSession();
-  const formattedResponse = formatSession(session);
+export async function handleStartSession(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
+  const sessionInfo = await wahaClient.startSession(session);
+  const formattedResponse = formatSession(sessionInfo);
 
   return {
     content: [
@@ -75,9 +79,10 @@ export async function handleStartSession(wahaClient: WAHAClient) {
   };
 }
 
-export async function handleStopSession(wahaClient: WAHAClient) {
-  const session = await wahaClient.stopSession();
-  const formattedResponse = formatSession(session);
+export async function handleStopSession(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
+  const sessionInfo = await wahaClient.stopSession(session);
+  const formattedResponse = formatSession(sessionInfo);
 
   return {
     content: [
@@ -89,9 +94,10 @@ export async function handleStopSession(wahaClient: WAHAClient) {
   };
 }
 
-export async function handleRestartSession(wahaClient: WAHAClient) {
-  const session = await wahaClient.restartSession();
-  const formattedResponse = formatSession(session);
+export async function handleRestartSession(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
+  const sessionInfo = await wahaClient.restartSession(session);
+  const formattedResponse = formatSession(sessionInfo);
 
   return {
     content: [
@@ -103,8 +109,9 @@ export async function handleRestartSession(wahaClient: WAHAClient) {
   };
 }
 
-export async function handleLogoutSession(wahaClient: WAHAClient) {
-  await wahaClient.logoutSession();
+export async function handleLogoutSession(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
+  await wahaClient.logoutSession(session);
 
   return {
     content: [
@@ -116,8 +123,9 @@ export async function handleLogoutSession(wahaClient: WAHAClient) {
   };
 }
 
-export async function handleDeleteSession(wahaClient: WAHAClient) {
-  await wahaClient.deleteSession();
+export async function handleDeleteSession(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
+  await wahaClient.deleteSession(session);
 
   return {
     content: [
@@ -129,8 +137,9 @@ export async function handleDeleteSession(wahaClient: WAHAClient) {
   };
 }
 
-export async function handleGetSessionMe(wahaClient: WAHAClient) {
-  const me = await wahaClient.getSessionMe();
+export async function handleGetSessionMe(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
+  const me = await wahaClient.getSessionMe(session);
 
   if (!me) {
     return {
@@ -154,8 +163,9 @@ export async function handleGetSessionMe(wahaClient: WAHAClient) {
 }
 
 export async function handleGetQRCode(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
   const format = args.format || "base64";
-  const qr = await wahaClient.getQRCode({ format });
+  const qr = await wahaClient.getQRCode(session, { format });
 
   if (format === "raw") {
     return {
@@ -188,13 +198,14 @@ export async function handleGetQRCode(wahaClient: WAHAClient, args: any) {
 }
 
 export async function handleRequestPairingCode(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
   const { phoneNumber } = args;
 
   if (!phoneNumber) {
     throw new Error("phoneNumber is required");
   }
 
-  const result = await wahaClient.requestPairingCode({ phoneNumber });
+  const result = await wahaClient.requestPairingCode(session, { phoneNumber });
 
   return {
     content: [
@@ -207,8 +218,9 @@ export async function handleRequestPairingCode(wahaClient: WAHAClient, args: any
 }
 
 export async function handleGetScreenshot(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
   const format = args.format || "base64";
-  const screenshot = await wahaClient.getScreenshot({ format });
+  const screenshot = await wahaClient.getScreenshot(session, { format });
 
   if (format === "base64") {
     return {
@@ -235,6 +247,7 @@ export async function handleGetScreenshot(wahaClient: WAHAClient, args: any) {
  * Poll Handlers
  */
 export async function handleSendPoll(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
   const { chatId, poll, replyTo } = args;
 
   if (!chatId) {
@@ -245,7 +258,7 @@ export async function handleSendPoll(wahaClient: WAHAClient, args: any) {
     throw new Error("poll with name and options is required");
   }
 
-  const response = await wahaClient.sendPoll({
+  const response = await wahaClient.sendPoll(session, {
     chatId,
     poll,
     reply_to: replyTo,
@@ -264,6 +277,7 @@ export async function handleSendPoll(wahaClient: WAHAClient, args: any) {
 }
 
 export async function handleSendPollVote(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
   const { chatId, pollMessageId, pollServerId, votes } = args;
 
   if (!chatId) {
@@ -278,7 +292,7 @@ export async function handleSendPollVote(wahaClient: WAHAClient, args: any) {
     throw new Error("votes array is required");
   }
 
-  await wahaClient.sendPollVote({
+  await wahaClient.sendPollVote(session, {
     chatId,
     pollMessageId,
     pollServerId,
@@ -299,13 +313,14 @@ export async function handleSendPollVote(wahaClient: WAHAClient, args: any) {
  * Status/Stories Handlers
  */
 export async function handleSendTextStatus(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
   const { text, backgroundColor, font } = args;
 
   if (!text) {
     throw new Error("text is required");
   }
 
-  const response = await wahaClient.sendTextStatus({
+  const response = await wahaClient.sendTextStatus(session, {
     text,
     backgroundColor,
     font,
@@ -322,6 +337,7 @@ export async function handleSendTextStatus(wahaClient: WAHAClient, args: any) {
 }
 
 export async function handleSendMediaStatus(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
   const { file, mediaType, caption } = args;
 
   if (!file || (!file.url && !file.data)) {
@@ -332,7 +348,7 @@ export async function handleSendMediaStatus(wahaClient: WAHAClient, args: any) {
     throw new Error("mediaType is required");
   }
 
-  const response = await wahaClient.sendMediaStatus({
+  const response = await wahaClient.sendMediaStatus(session, {
     file,
     mediaType,
     caption,
@@ -348,8 +364,9 @@ export async function handleSendMediaStatus(wahaClient: WAHAClient, args: any) {
   };
 }
 
-export async function handleGetStatuses(wahaClient: WAHAClient) {
-  const statuses = await wahaClient.getStatuses();
+export async function handleGetStatuses(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
+  const statuses = await wahaClient.getStatuses(session);
   const formattedResponse = formatStatuses(statuses);
 
   return {
@@ -363,13 +380,14 @@ export async function handleGetStatuses(wahaClient: WAHAClient) {
 }
 
 export async function handleDeleteStatus(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
   const { messageId } = args;
 
   if (!messageId) {
     throw new Error("messageId is required");
   }
 
-  await wahaClient.deleteStatus(messageId);
+  await wahaClient.deleteStatus(session, messageId);
 
   return {
     content: [
@@ -384,8 +402,9 @@ export async function handleDeleteStatus(wahaClient: WAHAClient, args: any) {
 /**
  * Label Handlers
  */
-export async function handleGetLabels(wahaClient: WAHAClient) {
-  const labels = await wahaClient.getLabels();
+export async function handleGetLabels(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
+  const labels = await wahaClient.getLabels(session);
   const formattedResponse = formatLabels(labels);
 
   return {
@@ -399,13 +418,14 @@ export async function handleGetLabels(wahaClient: WAHAClient) {
 }
 
 export async function handleGetChatLabels(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
   const { chatId } = args;
 
   if (!chatId) {
     throw new Error("chatId is required");
   }
 
-  const labels = await wahaClient.getChatLabels(chatId);
+  const labels = await wahaClient.getChatLabels(session, chatId);
   const formattedResponse = formatLabels(labels);
 
   return {
@@ -419,6 +439,7 @@ export async function handleGetChatLabels(wahaClient: WAHAClient, args: any) {
 }
 
 export async function handlePutChatLabels(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
   const { chatId, labels } = args;
 
   if (!chatId) {
@@ -429,7 +450,7 @@ export async function handlePutChatLabels(wahaClient: WAHAClient, args: any) {
     throw new Error("labels array is required");
   }
 
-  await wahaClient.putChatLabels({ chatId, labels });
+  await wahaClient.putChatLabels(session, { chatId, labels });
 
   return {
     content: [
@@ -442,6 +463,7 @@ export async function handlePutChatLabels(wahaClient: WAHAClient, args: any) {
 }
 
 export async function handleDeleteChatLabel(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
   const { chatId, labelId } = args;
 
   if (!chatId) {
@@ -452,7 +474,7 @@ export async function handleDeleteChatLabel(wahaClient: WAHAClient, args: any) {
     throw new Error("labelId is required");
   }
 
-  await wahaClient.deleteChatLabel(chatId, labelId);
+  await wahaClient.deleteChatLabel(session, chatId, labelId);
 
   return {
     content: [
@@ -465,6 +487,7 @@ export async function handleDeleteChatLabel(wahaClient: WAHAClient, args: any) {
 }
 
 export async function handleGetMessageLabels(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
   const { chatId, messageId } = args;
 
   if (!chatId) {
@@ -475,7 +498,7 @@ export async function handleGetMessageLabels(wahaClient: WAHAClient, args: any) 
     throw new Error("messageId is required");
   }
 
-  const labels = await wahaClient.getMessageLabels(chatId, messageId);
+  const labels = await wahaClient.getMessageLabels(session, chatId, messageId);
   const formattedResponse = formatLabels(labels);
 
   return {
@@ -489,6 +512,7 @@ export async function handleGetMessageLabels(wahaClient: WAHAClient, args: any) 
 }
 
 export async function handlePutMessageLabels(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
   const { chatId, messageId, labels } = args;
 
   if (!chatId) {
@@ -503,7 +527,7 @@ export async function handlePutMessageLabels(wahaClient: WAHAClient, args: any) 
     throw new Error("labels array is required");
   }
 
-  await wahaClient.putMessageLabels({ chatId, messageId, labels });
+  await wahaClient.putMessageLabels(session, { chatId, messageId, labels });
 
   return {
     content: [
@@ -516,6 +540,7 @@ export async function handlePutMessageLabels(wahaClient: WAHAClient, args: any) 
 }
 
 export async function handleDeleteMessageLabel(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
   const { chatId, messageId, labelId } = args;
 
   if (!chatId) {
@@ -530,7 +555,7 @@ export async function handleDeleteMessageLabel(wahaClient: WAHAClient, args: any
     throw new Error("labelId is required");
   }
 
-  await wahaClient.deleteMessageLabel(chatId, messageId, labelId);
+  await wahaClient.deleteMessageLabel(session, chatId, messageId, labelId);
 
   return {
     content: [
@@ -546,13 +571,14 @@ export async function handleDeleteMessageLabel(wahaClient: WAHAClient, args: any
  * Profile Management Handlers
  */
 export async function handleSetMyProfileName(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
   const { name } = args;
 
   if (!name) {
     throw new Error("name is required");
   }
 
-  await wahaClient.setMyProfileName(name);
+  await wahaClient.setMyProfileName(session, name);
 
   return {
     content: [
@@ -565,13 +591,14 @@ export async function handleSetMyProfileName(wahaClient: WAHAClient, args: any) 
 }
 
 export async function handleSetMyProfileStatus(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
   const { status } = args;
 
   if (!status) {
     throw new Error("status is required");
   }
 
-  await wahaClient.setMyProfileStatus(status);
+  await wahaClient.setMyProfileStatus(session, status);
 
   return {
     content: [
@@ -584,13 +611,14 @@ export async function handleSetMyProfileStatus(wahaClient: WAHAClient, args: any
 }
 
 export async function handleSetMyProfilePicture(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
   const { file } = args;
 
   if (!file || (!file.url && !file.data)) {
     throw new Error("file with url or data is required");
   }
 
-  await wahaClient.setMyProfilePicture(file);
+  await wahaClient.setMyProfilePicture(session, file);
 
   return {
     content: [
@@ -602,8 +630,9 @@ export async function handleSetMyProfilePicture(wahaClient: WAHAClient, args: an
   };
 }
 
-export async function handleDeleteMyProfilePicture(wahaClient: WAHAClient) {
-  await wahaClient.deleteMyProfilePicture();
+export async function handleDeleteMyProfilePicture(wahaClient: WAHAClient, args: any) {
+  const session = args.session || (await import("../config.js")).config.wahaDefaultSession;
+  await wahaClient.deleteMyProfilePicture(session);
 
   return {
     content: [

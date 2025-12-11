@@ -39,7 +39,51 @@ Required environment variables in `.env`:
 
 - `WAHA_BASE_URL`: Your WAHA server URL (e.g., `http://localhost:3000`)
 - `WAHA_API_KEY`: Your WAHA API key for authentication
-- `WAHA_SESSION`: WhatsApp session name (default: `default`)
+- `WAHA_SESSION`: (Optional) Default WhatsApp session name to use when not specified in tool calls (default: `default`)
+
+### Multi-Session Support
+
+The WAHA MCP Server now supports managing multiple WhatsApp sessions! Each tool accepts an optional `session` parameter:
+
+- **If provided**: The tool operates on the specified session
+- **If not provided**: Uses the `WAHA_SESSION` environment variable as default
+
+**Examples:**
+```javascript
+// Use default session from WAHA_SESSION env var
+{
+  "name": "waha_get_chats",
+  "arguments": { "limit": 10 }
+}
+
+// Specify a different session
+{
+  "name": "waha_get_chats", 
+  "arguments": { "session": "business", "limit": 10 }
+}
+
+// Work with multiple sessions at once
+// List all sessions
+{
+  "name": "waha_list_sessions",
+  "arguments": { "all": true }
+}
+
+// Update profile pictures for all sessions
+// Get sessions, then for each session:
+{
+  "name": "waha_set_my_profile_picture",
+  "arguments": {
+    "session": "personal",
+    "file": { "mimetype": "image/jpeg", "data": "base64..." }
+  }
+}
+```
+
+This enables powerful use cases like:
+- Managing personal and business accounts separately
+- Bulk operations across multiple accounts
+- Different configurations per session
 
 ## Development
 

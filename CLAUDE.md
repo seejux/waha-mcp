@@ -38,7 +38,21 @@ npm run inspector
 Required environment variables in `.env`:
 - `WAHA_BASE_URL`: WAHA server URL (e.g., `http://localhost:3000`)
 - `WAHA_API_KEY`: API key for WAHA authentication
-- `WAHA_SESSION`: WhatsApp session name (default: `default`)
+- `WAHA_SESSION`: (Optional) Default WhatsApp session name when not specified in tool calls (default: `default`)
+
+### Multi-Session Architecture
+
+The server now supports managing multiple WhatsApp sessions simultaneously:
+
+- **WAHAClient**: No longer holds a session instance variable. All methods accept `session: string` as first parameter.
+- **Config**: `config.wahaDefaultSession` provides fallback when session not specified in tool calls.
+- **All Tools**: Accept optional `session` parameter. If not provided, falls back to `config.wahaDefaultSession`.
+- **Resources**: Extract session from URI query params (e.g., `waha://chats/overview?session=business`) or use default.
+
+This enables:
+- Managing multiple WhatsApp accounts (personal, business, etc.)
+- Bulk operations across accounts (e.g., update all profile pictures)
+- Per-session configuration and management
 
 Optional webhook configuration:
 - `WEBHOOK_ENABLED`: Enable webhook support (default: `false`)

@@ -30,12 +30,10 @@ export class WAHAError extends Error {
 export class WAHAClient {
   private baseUrl: string;
   private apiKey: string;
-  private session: string;
 
-  constructor(baseUrl: string, apiKey: string, session: string = "default") {
+  constructor(baseUrl: string, apiKey: string) {
     this.baseUrl = baseUrl;
     this.apiKey = apiKey;
-    this.session = session;
   }
 
   /**
@@ -115,9 +113,7 @@ export class WAHAClient {
    * Get chats overview
    * GET /api/:session/chats/overview
    */
-  async getChatsOverview(
-    params: GetChatsOverviewParams = {}
-  ): Promise<ChatOverview[]> {
+  async getChatsOverview(session: string, params: GetChatsOverviewParams = {}): Promise<ChatOverview[]> {
     const { limit = 10, offset, ids } = params;
 
     const queryParams: Record<string, any> = {
@@ -130,7 +126,7 @@ export class WAHAClient {
     }
 
     const queryString = this.buildQueryString(queryParams);
-    const endpoint = `/api/${this.session}/chats/overview${queryString}`;
+    const endpoint = `/api/${session}/chats/overview${queryString}`;
 
     return this.request<ChatOverview[]>(endpoint, {
       method: "GET",
@@ -141,7 +137,7 @@ export class WAHAClient {
    * Get messages from a chat
    * GET /api/:session/chats/:chatId/messages
    */
-  async getChatMessages(params: GetMessagesParams): Promise<Message[]> {
+  async getChatMessages(session: string, params: GetMessagesParams): Promise<Message[]> {
     const {
       chatId,
       limit = 10,
@@ -177,7 +173,7 @@ export class WAHAClient {
     }
 
     const queryString = this.buildQueryString(queryParams);
-    const endpoint = `/api/${this.session}/chats/${encodeURIComponent(
+    const endpoint = `/api/${session}/chats/${encodeURIComponent(
       chatId
     )}/messages${queryString}`;
 
@@ -190,10 +186,8 @@ export class WAHAClient {
    * Send a text message
    * POST /api/sendText
    */
-  async sendTextMessage(
-    params: SendTextMessageParams
-  ): Promise<SendMessageResponse> {
-    const { chatId, text, session, reply_to, linkPreview, linkPreviewHighQuality } = params;
+  async sendTextMessage(session: string, params: SendTextMessageParams): Promise<SendMessageResponse> {
+    const { chatId, text, reply_to, linkPreview, linkPreviewHighQuality } = params;
 
     if (!chatId) {
       throw new WAHAError("chatId is required");
@@ -206,7 +200,7 @@ export class WAHAClient {
     const body = {
       chatId,
       text,
-      session: session || this.session,
+      session: session,
       reply_to,
       linkPreview: linkPreview !== false, // Default true
       linkPreviewHighQuality: linkPreviewHighQuality || false,
@@ -222,7 +216,7 @@ export class WAHAClient {
    * Mark messages in a chat as read
    * POST /api/:session/chats/:chatId/messages/read
    */
-  async markChatAsRead(params: MarkChatAsReadParams): Promise<void> {
+  async markChatAsRead(session: string, params: MarkChatAsReadParams): Promise<void> {
     const { chatId, messages = 30, days = 7 } = params;
 
     if (!chatId) {
@@ -235,7 +229,7 @@ export class WAHAClient {
     };
 
     const queryString = this.buildQueryString(queryParams);
-    const endpoint = `/api/${this.session}/chats/${encodeURIComponent(
+    const endpoint = `/api/${session}/chats/${encodeURIComponent(
       chatId
     )}/messages/read${queryString}`;
 
@@ -248,7 +242,7 @@ export class WAHAClient {
    * Update session webhook configuration
    * PUT /api/sessions/:session
    */
-  async updateSessionWebhook(webhookConfig: {
+  async updateSessionWebhook(session: string, webhookConfig: {
     url: string;
     events: string[];
     hmacKey?: string;
@@ -274,7 +268,7 @@ export class WAHAClient {
       console.error("[WAHAClient] No HMAC key provided");
     }
 
-    const endpoint = `/api/sessions/${this.session}`;
+    const endpoint = `/api/sessions/${session}`;
 
     console.error(`[WAHAClient] Sending webhook config to endpoint: ${endpoint}`);
     console.error(`[WAHAClient] Webhook URL: ${body.config.webhooks[0].url}`);
@@ -295,7 +289,7 @@ export class WAHAClient {
    * Delete a message from a chat
    * DELETE /api/:session/chats/:chatId/messages/:messageId
    */
-  async deleteMessage(chatId: string, messageId: string): Promise<void> {
+  async deleteMessage(session: string, chatId: string, messageId: string): Promise<void> {
     if (!chatId) {
       throw new WAHAError("chatId is required");
     }
@@ -304,7 +298,7 @@ export class WAHAClient {
       throw new WAHAError("messageId is required");
     }
 
-    const endpoint = `/api/${this.session}/chats/${encodeURIComponent(
+    const endpoint = `/api/${session}/chats/${encodeURIComponent(
       chatId
     )}/messages/${encodeURIComponent(messageId)}`;
 
@@ -317,7 +311,7 @@ export class WAHAClient {
    * Edit a message in a chat
    * PUT /api/:session/chats/:chatId/messages/:messageId
    */
-  async editMessage(params: {
+  async editMessage(session: string, params: {
     chatId: string;
     messageId: string;
     text: string;
@@ -338,7 +332,7 @@ export class WAHAClient {
       throw new WAHAError("text is required");
     }
 
-    const endpoint = `/api/${this.session}/chats/${encodeURIComponent(
+    const endpoint = `/api/${session}/chats/${encodeURIComponent(
       chatId
     )}/messages/${encodeURIComponent(messageId)}`;
 
@@ -358,7 +352,7 @@ export class WAHAClient {
    * Pin a message in a chat
    * POST /api/:session/chats/:chatId/messages/:messageId/pin
    */
-  async pinMessage(params: {
+  async pinMessage(session: string, params: {
     chatId: string;
     messageId: string;
     duration?: number;
@@ -379,7 +373,7 @@ export class WAHAClient {
     }
 
     const queryString = this.buildQueryString(queryParams);
-    const endpoint = `/api/${this.session}/chats/${encodeURIComponent(
+    const endpoint = `/api/${session}/chats/${encodeURIComponent(
       chatId
     )}/messages/${encodeURIComponent(messageId)}/pin${queryString}`;
 
@@ -392,7 +386,7 @@ export class WAHAClient {
    * Unpin a message in a chat
    * POST /api/:session/chats/:chatId/messages/:messageId/unpin
    */
-  async unpinMessage(chatId: string, messageId: string): Promise<void> {
+  async unpinMessage(session: string, chatId: string, messageId: string): Promise<void> {
     if (!chatId) {
       throw new WAHAError("chatId is required");
     }
@@ -401,7 +395,7 @@ export class WAHAClient {
       throw new WAHAError("messageId is required");
     }
 
-    const endpoint = `/api/${this.session}/chats/${encodeURIComponent(
+    const endpoint = `/api/${session}/chats/${encodeURIComponent(
       chatId
     )}/messages/${encodeURIComponent(messageId)}/unpin`;
 
@@ -414,12 +408,12 @@ export class WAHAClient {
    * Clear all messages from a chat (destructive operation)
    * DELETE /api/:session/chats/:chatId/messages
    */
-  async clearChatMessages(chatId: string): Promise<void> {
+  async clearChatMessages(session: string, chatId: string): Promise<void> {
     if (!chatId) {
       throw new WAHAError("chatId is required");
     }
 
-    const endpoint = `/api/${this.session}/chats/${encodeURIComponent(
+    const endpoint = `/api/${session}/chats/${encodeURIComponent(
       chatId
     )}/messages`;
 
@@ -432,12 +426,12 @@ export class WAHAClient {
    * Delete a chat completely (destructive operation)
    * DELETE /api/:session/chats/:chatId
    */
-  async deleteChat(chatId: string): Promise<void> {
+  async deleteChat(session: string, chatId: string): Promise<void> {
     if (!chatId) {
       throw new WAHAError("chatId is required");
     }
 
-    const endpoint = `/api/${this.session}/chats/${encodeURIComponent(chatId)}`;
+    const endpoint = `/api/${session}/chats/${encodeURIComponent(chatId)}`;
 
     await this.request<void>(endpoint, {
       method: "DELETE",
@@ -448,12 +442,12 @@ export class WAHAClient {
    * Archive a chat
    * POST /api/:session/chats/:chatId/archive
    */
-  async archiveChat(chatId: string): Promise<void> {
+  async archiveChat(session: string, chatId: string): Promise<void> {
     if (!chatId) {
       throw new WAHAError("chatId is required");
     }
 
-    const endpoint = `/api/${this.session}/chats/${encodeURIComponent(
+    const endpoint = `/api/${session}/chats/${encodeURIComponent(
       chatId
     )}/archive`;
 
@@ -466,12 +460,12 @@ export class WAHAClient {
    * Unarchive a chat
    * POST /api/:session/chats/:chatId/unarchive
    */
-  async unarchiveChat(chatId: string): Promise<void> {
+  async unarchiveChat(session: string, chatId: string): Promise<void> {
     if (!chatId) {
       throw new WAHAError("chatId is required");
     }
 
-    const endpoint = `/api/${this.session}/chats/${encodeURIComponent(
+    const endpoint = `/api/${session}/chats/${encodeURIComponent(
       chatId
     )}/unarchive`;
 
@@ -484,12 +478,12 @@ export class WAHAClient {
    * Mark a chat as unread
    * POST /api/:session/chats/:chatId/unread
    */
-  async markChatUnread(chatId: string): Promise<void> {
+  async markChatUnread(session: string, chatId: string): Promise<void> {
     if (!chatId) {
       throw new WAHAError("chatId is required");
     }
 
-    const endpoint = `/api/${this.session}/chats/${encodeURIComponent(
+    const endpoint = `/api/${session}/chats/${encodeURIComponent(
       chatId
     )}/unread`;
 
@@ -502,7 +496,7 @@ export class WAHAClient {
    * Get chat picture URL
    * GET /api/:session/chats/:chatId/picture
    */
-  async getChatPicture(params: {
+  async getChatPicture(session: string, params: {
     chatId: string;
     refresh?: boolean;
   }): Promise<{ url: string }> {
@@ -518,7 +512,7 @@ export class WAHAClient {
     }
 
     const queryString = this.buildQueryString(queryParams);
-    const endpoint = `/api/${this.session}/chats/${encodeURIComponent(
+    const endpoint = `/api/${session}/chats/${encodeURIComponent(
       chatId
     )}/picture${queryString}`;
 
@@ -531,7 +525,7 @@ export class WAHAClient {
    * Send media (image, video, or document)
    * POST /api/sendImage, /api/sendVideo, /api/sendFile
    */
-  async sendMedia(params: {
+  async sendMedia(session: string, params: {
     chatId: string;
     file: {
       mimetype: string;
@@ -562,7 +556,7 @@ export class WAHAClient {
     const body = {
       chatId,
       file,
-      session: this.session,
+      session: session,
       caption,
       reply_to,
     };
@@ -577,7 +571,7 @@ export class WAHAClient {
    * Send audio/voice message
    * POST /api/sendVoice
    */
-  async sendAudio(params: {
+  async sendAudio(session: string, params: {
     chatId: string;
     file: {
       mimetype: string;
@@ -600,7 +594,7 @@ export class WAHAClient {
     const body = {
       chatId,
       file,
-      session: this.session,
+      session: session,
       reply_to,
     };
 
@@ -614,7 +608,7 @@ export class WAHAClient {
    * Send location
    * POST /api/sendLocation
    */
-  async sendLocation(params: {
+  async sendLocation(session: string, params: {
     chatId: string;
     latitude: number;
     longitude: number;
@@ -636,7 +630,7 @@ export class WAHAClient {
       latitude,
       longitude,
       title,
-      session: this.session,
+      session: session,
       reply_to,
     };
 
@@ -650,7 +644,7 @@ export class WAHAClient {
    * Send contact card(s)
    * POST /api/sendContactVcard
    */
-  async sendContact(params: {
+  async sendContact(session: string, params: {
     chatId: string;
     contacts: Array<{ vcard: string }>;
     reply_to?: string;
@@ -668,7 +662,7 @@ export class WAHAClient {
     const body = {
       chatId,
       contacts,
-      session: this.session,
+      session: session,
       reply_to,
     };
 
@@ -682,7 +676,7 @@ export class WAHAClient {
    * React to a message
    * PUT /api/reaction
    */
-  async reactToMessage(params: {
+  async reactToMessage(session: string, params: {
     messageId: string;
     reaction: string;
   }): Promise<void> {
@@ -699,7 +693,7 @@ export class WAHAClient {
     const body = {
       messageId,
       reaction,
-      session: this.session,
+      session: session,
     };
 
     await this.request<void>("/api/reaction", {
@@ -712,7 +706,7 @@ export class WAHAClient {
    * Star or unstar a message
    * PUT /api/:session/chats/:chatId/messages/:messageId/star
    */
-  async starMessage(params: {
+  async starMessage(session: string, params: {
     chatId: string;
     messageId: string;
     star: boolean;
@@ -727,7 +721,7 @@ export class WAHAClient {
       throw new WAHAError("messageId is required");
     }
 
-    const endpoint = `/api/${this.session}/chats/${encodeURIComponent(
+    const endpoint = `/api/${session}/chats/${encodeURIComponent(
       chatId
     )}/messages/${encodeURIComponent(messageId)}/star`;
 
@@ -745,7 +739,7 @@ export class WAHAClient {
    * Get list of groups
    * GET /api/:session/groups
    */
-  async getGroups(params?: {
+  async getGroups(session: string, params?: {
     sortBy?: "id" | "name";
     sortOrder?: "asc" | "desc";
     limit?: number;
@@ -761,7 +755,7 @@ export class WAHAClient {
     if (params?.exclude) queryParams.exclude = params.exclude;
 
     const queryString = this.buildQueryString(queryParams);
-    const endpoint = `/api/${this.session}/groups${queryString}`;
+    const endpoint = `/api/${session}/groups${queryString}`;
 
     return this.request<any[]>(endpoint, {
       method: "GET",
@@ -772,12 +766,12 @@ export class WAHAClient {
    * Get group information
    * GET /api/:session/groups/:id
    */
-  async getGroupInfo(groupId: string): Promise<any> {
+  async getGroupInfo(session: string, groupId: string): Promise<any> {
     if (!groupId) {
       throw new WAHAError("groupId is required");
     }
 
-    const endpoint = `/api/${this.session}/groups/${encodeURIComponent(groupId)}`;
+    const endpoint = `/api/${session}/groups/${encodeURIComponent(groupId)}`;
 
     return this.request<any>(endpoint, {
       method: "GET",
@@ -788,7 +782,7 @@ export class WAHAClient {
    * Get group picture
    * GET /api/:session/groups/:id/picture
    */
-  async getGroupPicture(params: {
+  async getGroupPicture(session: string, params: {
     groupId: string;
     refresh?: boolean;
   }): Promise<{ url: string }> {
@@ -804,7 +798,7 @@ export class WAHAClient {
     }
 
     const queryString = this.buildQueryString(queryParams);
-    const endpoint = `/api/${this.session}/groups/${encodeURIComponent(
+    const endpoint = `/api/${session}/groups/${encodeURIComponent(
       groupId
     )}/picture${queryString}`;
 
@@ -817,7 +811,7 @@ export class WAHAClient {
    * Set group picture
    * POST /api/:session/groups/:id/picture
    */
-  async setGroupPicture(params: {
+  async setGroupPicture(session: string, params: {
     groupId: string;
     file: {
       url?: string;
@@ -834,7 +828,7 @@ export class WAHAClient {
       throw new WAHAError("file with url or data is required");
     }
 
-    const endpoint = `/api/${this.session}/groups/${encodeURIComponent(groupId)}/picture`;
+    const endpoint = `/api/${session}/groups/${encodeURIComponent(groupId)}/picture`;
 
     const body = { file };
 
@@ -848,12 +842,12 @@ export class WAHAClient {
    * Delete group picture
    * DELETE /api/:session/groups/:id/picture
    */
-  async deleteGroupPicture(groupId: string): Promise<void> {
+  async deleteGroupPicture(session: string, groupId: string): Promise<void> {
     if (!groupId) {
       throw new WAHAError("groupId is required");
     }
 
-    const endpoint = `/api/${this.session}/groups/${encodeURIComponent(groupId)}/picture`;
+    const endpoint = `/api/${session}/groups/${encodeURIComponent(groupId)}/picture`;
 
     await this.request<void>(endpoint, {
       method: "DELETE",
@@ -864,7 +858,7 @@ export class WAHAClient {
    * Create a new group
    * POST /api/:session/groups
    */
-  async createGroup(params: {
+  async createGroup(session: string, params: {
     name: string;
     participants: Array<{ id: string }>;
   }): Promise<any> {
@@ -880,7 +874,7 @@ export class WAHAClient {
 
     const body = { name, participants };
 
-    return this.request<any>(`/api/${this.session}/groups`, {
+    return this.request<any>(`/api/${session}/groups`, {
       method: "POST",
       body: JSON.stringify(body),
     });
@@ -890,7 +884,7 @@ export class WAHAClient {
    * Update group subject/name
    * PUT /api/:session/groups/:id/subject
    */
-  async updateGroupSubject(params: {
+  async updateGroupSubject(session: string, params: {
     groupId: string;
     subject: string;
   }): Promise<void> {
@@ -904,7 +898,7 @@ export class WAHAClient {
       throw new WAHAError("subject is required");
     }
 
-    const endpoint = `/api/${this.session}/groups/${encodeURIComponent(groupId)}/subject`;
+    const endpoint = `/api/${session}/groups/${encodeURIComponent(groupId)}/subject`;
 
     const body = { subject };
 
@@ -918,7 +912,7 @@ export class WAHAClient {
    * Update group description
    * PUT /api/:session/groups/:id/description
    */
-  async updateGroupDescription(params: {
+  async updateGroupDescription(session: string, params: {
     groupId: string;
     description: string;
   }): Promise<void> {
@@ -932,7 +926,7 @@ export class WAHAClient {
       throw new WAHAError("description is required");
     }
 
-    const endpoint = `/api/${this.session}/groups/${encodeURIComponent(groupId)}/description`;
+    const endpoint = `/api/${session}/groups/${encodeURIComponent(groupId)}/description`;
 
     const body = { description };
 
@@ -946,12 +940,12 @@ export class WAHAClient {
    * Leave a group
    * POST /api/:session/groups/:id/leave
    */
-  async leaveGroup(groupId: string): Promise<void> {
+  async leaveGroup(session: string, groupId: string): Promise<void> {
     if (!groupId) {
       throw new WAHAError("groupId is required");
     }
 
-    const endpoint = `/api/${this.session}/groups/${encodeURIComponent(groupId)}/leave`;
+    const endpoint = `/api/${session}/groups/${encodeURIComponent(groupId)}/leave`;
 
     await this.request<void>(endpoint, {
       method: "POST",
@@ -962,12 +956,12 @@ export class WAHAClient {
    * Get group participants
    * GET /api/:session/groups/:id/participants
    */
-  async getGroupParticipants(groupId: string): Promise<any[]> {
+  async getGroupParticipants(session: string, groupId: string): Promise<any[]> {
     if (!groupId) {
       throw new WAHAError("groupId is required");
     }
 
-    const endpoint = `/api/${this.session}/groups/${encodeURIComponent(groupId)}/participants`;
+    const endpoint = `/api/${session}/groups/${encodeURIComponent(groupId)}/participants`;
 
     return this.request<any[]>(endpoint, {
       method: "GET",
@@ -978,7 +972,7 @@ export class WAHAClient {
    * Add participants to group
    * POST /api/:session/groups/:id/participants/add
    */
-  async addGroupParticipants(params: {
+  async addGroupParticipants(session: string, params: {
     groupId: string;
     participants: Array<{ id: string }>;
   }): Promise<any> {
@@ -992,7 +986,7 @@ export class WAHAClient {
       throw new WAHAError("participants array is required");
     }
 
-    const endpoint = `/api/${this.session}/groups/${encodeURIComponent(groupId)}/participants/add`;
+    const endpoint = `/api/${session}/groups/${encodeURIComponent(groupId)}/participants/add`;
 
     const body = { participants };
 
@@ -1006,7 +1000,7 @@ export class WAHAClient {
    * Remove participants from group
    * POST /api/:session/groups/:id/participants/remove
    */
-  async removeGroupParticipants(params: {
+  async removeGroupParticipants(session: string, params: {
     groupId: string;
     participants: Array<{ id: string }>;
   }): Promise<any> {
@@ -1020,7 +1014,7 @@ export class WAHAClient {
       throw new WAHAError("participants array is required");
     }
 
-    const endpoint = `/api/${this.session}/groups/${encodeURIComponent(groupId)}/participants/remove`;
+    const endpoint = `/api/${session}/groups/${encodeURIComponent(groupId)}/participants/remove`;
 
     const body = { participants };
 
@@ -1034,7 +1028,7 @@ export class WAHAClient {
    * Promote participants to admin
    * POST /api/:session/groups/:id/admin/promote
    */
-  async promoteGroupAdmin(params: {
+  async promoteGroupAdmin(session: string, params: {
     groupId: string;
     participants: Array<{ id: string }>;
   }): Promise<any> {
@@ -1048,7 +1042,7 @@ export class WAHAClient {
       throw new WAHAError("participants array is required");
     }
 
-    const endpoint = `/api/${this.session}/groups/${encodeURIComponent(groupId)}/admin/promote`;
+    const endpoint = `/api/${session}/groups/${encodeURIComponent(groupId)}/admin/promote`;
 
     const body = { participants };
 
@@ -1062,7 +1056,7 @@ export class WAHAClient {
    * Demote admin
    * POST /api/:session/groups/:id/admin/demote
    */
-  async demoteGroupAdmin(params: {
+  async demoteGroupAdmin(session: string, params: {
     groupId: string;
     participants: Array<{ id: string }>;
   }): Promise<any> {
@@ -1076,7 +1070,7 @@ export class WAHAClient {
       throw new WAHAError("participants array is required");
     }
 
-    const endpoint = `/api/${this.session}/groups/${encodeURIComponent(groupId)}/admin/demote`;
+    const endpoint = `/api/${session}/groups/${encodeURIComponent(groupId)}/admin/demote`;
 
     const body = { participants };
 
@@ -1090,12 +1084,12 @@ export class WAHAClient {
    * Get group invite code
    * GET /api/:session/groups/:id/invite-code
    */
-  async getGroupInviteCode(groupId: string): Promise<{ inviteCode: string }> {
+  async getGroupInviteCode(session: string, groupId: string): Promise<{ inviteCode: string }> {
     if (!groupId) {
       throw new WAHAError("groupId is required");
     }
 
-    const endpoint = `/api/${this.session}/groups/${encodeURIComponent(groupId)}/invite-code`;
+    const endpoint = `/api/${session}/groups/${encodeURIComponent(groupId)}/invite-code`;
 
     return this.request<{ inviteCode: string }>(endpoint, {
       method: "GET",
@@ -1106,12 +1100,12 @@ export class WAHAClient {
    * Revoke group invite code
    * POST /api/:session/groups/:id/invite-code/revoke
    */
-  async revokeGroupInviteCode(groupId: string): Promise<{ inviteCode: string }> {
+  async revokeGroupInviteCode(session: string, groupId: string): Promise<{ inviteCode: string }> {
     if (!groupId) {
       throw new WAHAError("groupId is required");
     }
 
-    const endpoint = `/api/${this.session}/groups/${encodeURIComponent(groupId)}/invite-code/revoke`;
+    const endpoint = `/api/${session}/groups/${encodeURIComponent(groupId)}/invite-code/revoke`;
 
     return this.request<{ inviteCode: string }>(endpoint, {
       method: "POST",
@@ -1122,14 +1116,14 @@ export class WAHAClient {
    * Join group via invite code
    * POST /api/:session/groups/join
    */
-  async joinGroup(code: string): Promise<any> {
+  async joinGroup(session: string, code: string): Promise<any> {
     if (!code) {
       throw new WAHAError("code is required");
     }
 
     const body = { code };
 
-    return this.request<any>(`/api/${this.session}/groups/join`, {
+    return this.request<any>(`/api/${session}/groups/join`, {
       method: "POST",
       body: JSON.stringify(body),
     });
@@ -1139,14 +1133,14 @@ export class WAHAClient {
    * Get group join info
    * GET /api/:session/groups/join-info
    */
-  async getGroupJoinInfo(code: string): Promise<any> {
+  async getGroupJoinInfo(session: string, code: string): Promise<any> {
     if (!code) {
       throw new WAHAError("code is required");
     }
 
     const queryParams = { code };
     const queryString = this.buildQueryString(queryParams);
-    const endpoint = `/api/${this.session}/groups/join-info${queryString}`;
+    const endpoint = `/api/${session}/groups/join-info${queryString}`;
 
     return this.request<any>(endpoint, {
       method: "GET",
@@ -1157,7 +1151,7 @@ export class WAHAClient {
    * Set group messages admin only
    * PUT /api/:session/groups/:id/settings/security/messages-admin-only
    */
-  async setGroupMessagesAdminOnly(params: {
+  async setGroupMessagesAdminOnly(session: string, params: {
     groupId: string;
     adminsOnly: boolean;
   }): Promise<void> {
@@ -1171,7 +1165,7 @@ export class WAHAClient {
       throw new WAHAError("adminsOnly is required");
     }
 
-    const endpoint = `/api/${this.session}/groups/${encodeURIComponent(groupId)}/settings/security/messages-admin-only`;
+    const endpoint = `/api/${session}/groups/${encodeURIComponent(groupId)}/settings/security/messages-admin-only`;
 
     const body = { adminsOnly };
 
@@ -1185,7 +1179,7 @@ export class WAHAClient {
    * Set group info admin only
    * PUT /api/:session/groups/:id/settings/security/info-admin-only
    */
-  async setGroupInfoAdminOnly(params: {
+  async setGroupInfoAdminOnly(session: string, params: {
     groupId: string;
     adminsOnly: boolean;
   }): Promise<void> {
@@ -1199,7 +1193,7 @@ export class WAHAClient {
       throw new WAHAError("adminsOnly is required");
     }
 
-    const endpoint = `/api/${this.session}/groups/${encodeURIComponent(groupId)}/settings/security/info-admin-only`;
+    const endpoint = `/api/${session}/groups/${encodeURIComponent(groupId)}/settings/security/info-admin-only`;
 
     const body = { adminsOnly };
 
@@ -1213,8 +1207,8 @@ export class WAHAClient {
    * Get groups count
    * GET /api/:session/groups/count
    */
-  async getGroupsCount(): Promise<{ count: number }> {
-    const endpoint = `/api/${this.session}/groups/count`;
+  async getGroupsCount(session: string): Promise<{ count: number }> {
+    const endpoint = `/api/${session}/groups/count`;
 
     return this.request<{ count: number }>(endpoint, {
       method: "GET",
@@ -1227,14 +1221,14 @@ export class WAHAClient {
    * Get contact information by ID
    * GET /api/contacts?contactId=...&session=...
    */
-  async getContact(contactId: string): Promise<any> {
+  async getContact(session: string, contactId: string): Promise<any> {
     if (!contactId) {
       throw new WAHAError("contactId is required");
     }
 
     const queryParams = { 
       contactId,
-      session: this.session
+      session: session
     };
     const queryString = this.buildQueryString(queryParams);
     const endpoint = `/api/contacts${queryString}`;
@@ -1248,14 +1242,14 @@ export class WAHAClient {
    * Get all contacts with pagination
    * GET /api/contacts/all?session=...
    */
-  async getAllContacts(params?: {
+  async getAllContacts(session: string, params?: {
     sortBy?: "id" | "name";
     sortOrder?: "asc" | "desc";
     limit?: number;
     offset?: number;
   }): Promise<any[]> {
     const queryParams: Record<string, any> = {
-      session: this.session
+      session: session
     };
 
     if (params?.sortBy) queryParams.sortBy = params.sortBy;
@@ -1275,14 +1269,14 @@ export class WAHAClient {
    * Check if phone number is registered on WhatsApp
    * GET /api/contacts/check-exists?phone=...&session=...
    */
-  async checkContactExists(phone: string): Promise<any> {
+  async checkContactExists(session: string, phone: string): Promise<any> {
     if (!phone) {
       throw new WAHAError("phone is required");
     }
 
     const queryParams = { 
       phone,
-      session: this.session
+      session: session
     };
     const queryString = this.buildQueryString(queryParams);
     const endpoint = `/api/contacts/check-exists${queryString}`;
@@ -1296,14 +1290,14 @@ export class WAHAClient {
    * Get contact's about/status text
    * GET /api/contacts/about?contactId=...&session=...
    */
-  async getContactAbout(contactId: string): Promise<any> {
+  async getContactAbout(session: string, contactId: string): Promise<any> {
     if (!contactId) {
       throw new WAHAError("contactId is required");
     }
 
     const queryParams = { 
       contactId,
-      session: this.session
+      session: session
     };
     const queryString = this.buildQueryString(queryParams);
     const endpoint = `/api/contacts/about${queryString}`;
@@ -1317,7 +1311,7 @@ export class WAHAClient {
    * Get contact's profile picture URL
    * GET /api/contacts/profile-picture?contactId=...&session=...
    */
-  async getContactProfilePicture(params: {
+  async getContactProfilePicture(session: string, params: {
     contactId: string;
     refresh?: boolean;
   }): Promise<{ url: string }> {
@@ -1329,7 +1323,7 @@ export class WAHAClient {
 
     const queryParams: Record<string, any> = { 
       contactId,
-      session: this.session
+      session: session
     };
     if (refresh !== undefined) {
       queryParams.refresh = refresh;
@@ -1350,14 +1344,14 @@ export class WAHAClient {
    * Block a contact
    * POST /api/contacts/block
    */
-  async blockContact(contactId: string): Promise<void> {
+  async blockContact(session: string, contactId: string): Promise<void> {
     if (!contactId) {
       throw new WAHAError("contactId is required");
     }
 
     const body = {
       contactId,
-      session: this.session,
+      session: session,
     };
 
     await this.request<void>("/api/contacts/block", {
@@ -1370,14 +1364,14 @@ export class WAHAClient {
    * Unblock a contact
    * POST /api/contacts/unblock
    */
-  async unblockContact(contactId: string): Promise<void> {
+  async unblockContact(session: string, contactId: string): Promise<void> {
     if (!contactId) {
       throw new WAHAError("contactId is required");
     }
 
     const body = {
       contactId,
-      session: this.session,
+      session: session,
     };
 
     await this.request<void>("/api/contacts/unblock", {
@@ -1392,12 +1386,12 @@ export class WAHAClient {
    * Get presence information for a chat
    * GET /api/:session/presence/:chatId
    */
-  async getPresence(chatId: string): Promise<any> {
+  async getPresence(session: string, chatId: string): Promise<any> {
     if (!chatId) {
       throw new WAHAError("chatId is required");
     }
 
-    const endpoint = `/api/${this.session}/presence/${encodeURIComponent(chatId)}`;
+    const endpoint = `/api/${session}/presence/${encodeURIComponent(chatId)}`;
 
     return this.request<any>(endpoint, {
       method: "GET",
@@ -1408,12 +1402,12 @@ export class WAHAClient {
    * Subscribe to presence updates for a chat
    * POST /api/:session/presence/:chatId/subscribe
    */
-  async subscribePresence(chatId: string): Promise<void> {
+  async subscribePresence(session: string, chatId: string): Promise<void> {
     if (!chatId) {
       throw new WAHAError("chatId is required");
     }
 
-    const endpoint = `/api/${this.session}/presence/${encodeURIComponent(chatId)}/subscribe`;
+    const endpoint = `/api/${session}/presence/${encodeURIComponent(chatId)}/subscribe`;
 
     await this.request<void>(endpoint, {
       method: "POST",
@@ -1424,7 +1418,7 @@ export class WAHAClient {
    * Set your own presence status
    * POST /api/:session/presence
    */
-  async setPresence(params: {
+  async setPresence(session: string, params: {
     chatId: string;
     presence: "online" | "offline" | "typing" | "recording" | "paused";
   }): Promise<void> {
@@ -1443,7 +1437,7 @@ export class WAHAClient {
       presence,
     };
 
-    await this.request<void>(`/api/${this.session}/presence`, {
+    await this.request<void>(`/api/${session}/presence`, {
       method: "POST",
       body: JSON.stringify(body),
     });
@@ -1453,8 +1447,8 @@ export class WAHAClient {
    * Get all subscribed presence information
    * GET /api/:session/presence
    */
-  async getAllPresence(): Promise<any[]> {
-    const endpoint = `/api/${this.session}/presence`;
+  async getAllPresence(session: string): Promise<any[]> {
+    const endpoint = `/api/${session}/presence`;
 
     return this.request<any[]>(endpoint, {
       method: "GET",
@@ -1467,14 +1461,14 @@ export class WAHAClient {
    * Set my profile name
    * PUT /api/:session/profile/name
    */
-  async setMyProfileName(name: string): Promise<void> {
+  async setMyProfileName(session: string, name: string): Promise<void> {
     if (!name) {
       throw new WAHAError("name is required");
     }
 
     const body = { name };
 
-    await this.request<void>(`/api/${this.session}/profile/name`, {
+    await this.request<void>(`/api/${session}/profile/name`, {
       method: "PUT",
       body: JSON.stringify(body),
     });
@@ -1484,14 +1478,14 @@ export class WAHAClient {
    * Set my profile status (About)
    * PUT /api/:session/profile/status
    */
-  async setMyProfileStatus(status: string): Promise<void> {
+  async setMyProfileStatus(session: string, status: string): Promise<void> {
     if (!status) {
       throw new WAHAError("status is required");
     }
 
     const body = { status };
 
-    await this.request<void>(`/api/${this.session}/profile/status`, {
+    await this.request<void>(`/api/${session}/profile/status`, {
       method: "PUT",
       body: JSON.stringify(body),
     });
@@ -1501,7 +1495,7 @@ export class WAHAClient {
    * Set my profile picture
    * PUT /api/:session/profile/picture
    */
-  async setMyProfilePicture(file: {
+  async setMyProfilePicture(session: string, file: {
     url?: string;
     data?: string;
     mimetype?: string;
@@ -1512,7 +1506,7 @@ export class WAHAClient {
 
     const body = { file };
 
-    await this.request<void>(`/api/${this.session}/profile/picture`, {
+    await this.request<void>(`/api/${session}/profile/picture`, {
       method: "PUT",
       body: JSON.stringify(body),
     });
@@ -1522,8 +1516,8 @@ export class WAHAClient {
    * Delete my profile picture
    * DELETE /api/:session/profile/picture
    */
-  async deleteMyProfilePicture(): Promise<void> {
-    await this.request<void>(`/api/${this.session}/profile/picture`, {
+  async deleteMyProfilePicture(session: string): Promise<void> {
+    await this.request<void>(`/api/${session}/profile/picture`, {
       method: "DELETE",
     });
   }
@@ -1542,7 +1536,7 @@ export class WAHAClient {
    * List all sessions
    * GET /api/sessions
    */
-  async listSessions(params?: { all?: boolean }): Promise<any[]> {
+  async listSessions(session: string, params?: { all?: boolean }): Promise<any[]> {
     const queryParams: Record<string, any> = {};
     if (params?.all) queryParams.all = params.all;
 
@@ -1558,12 +1552,12 @@ export class WAHAClient {
    * Get session information
    * GET /api/sessions/:session
    */
-  async getSession(params?: { expand?: string[] }): Promise<any> {
+  async getSession(session: string, params?: { expand?: string[] }): Promise<any> {
     const queryParams: Record<string, any> = {};
     if (params?.expand) queryParams.expand = params.expand;
 
     const queryString = this.buildQueryString(queryParams);
-    const endpoint = `/api/sessions/${this.session}${queryString}`;
+    const endpoint = `/api/sessions/${session}${queryString}`;
 
     return this.request<any>(endpoint, {
       method: "GET",
@@ -1574,7 +1568,7 @@ export class WAHAClient {
    * Create a new session
    * POST /api/sessions
    */
-  async createSession(params: {
+  async createSession(session: string, params: {
     name?: string;
     start?: boolean;
     config?: any;
@@ -1594,8 +1588,8 @@ export class WAHAClient {
    * Start a session
    * POST /api/sessions/:session/start
    */
-  async startSession(): Promise<any> {
-    const endpoint = `/api/sessions/${this.session}/start`;
+  async startSession(session: string): Promise<any> {
+    const endpoint = `/api/sessions/${session}/start`;
 
     return this.request<any>(endpoint, {
       method: "POST",
@@ -1606,8 +1600,8 @@ export class WAHAClient {
    * Stop a session
    * POST /api/sessions/:session/stop
    */
-  async stopSession(): Promise<any> {
-    const endpoint = `/api/sessions/${this.session}/stop`;
+  async stopSession(session: string): Promise<any> {
+    const endpoint = `/api/sessions/${session}/stop`;
 
     return this.request<any>(endpoint, {
       method: "POST",
@@ -1618,8 +1612,8 @@ export class WAHAClient {
    * Restart a session
    * POST /api/sessions/:session/restart
    */
-  async restartSession(): Promise<any> {
-    const endpoint = `/api/sessions/${this.session}/restart`;
+  async restartSession(session: string): Promise<any> {
+    const endpoint = `/api/sessions/${session}/restart`;
 
     return this.request<any>(endpoint, {
       method: "POST",
@@ -1630,8 +1624,8 @@ export class WAHAClient {
    * Logout a session
    * POST /api/sessions/:session/logout
    */
-  async logoutSession(): Promise<void> {
-    const endpoint = `/api/sessions/${this.session}/logout`;
+  async logoutSession(session: string): Promise<void> {
+    const endpoint = `/api/sessions/${session}/logout`;
 
     await this.request<void>(endpoint, {
       method: "POST",
@@ -1642,8 +1636,8 @@ export class WAHAClient {
    * Delete a session
    * DELETE /api/sessions/:session
    */
-  async deleteSession(): Promise<void> {
-    const endpoint = `/api/sessions/${this.session}`;
+  async deleteSession(session: string): Promise<void> {
+    const endpoint = `/api/sessions/${session}`;
 
     await this.request<void>(endpoint, {
       method: "DELETE",
@@ -1654,8 +1648,8 @@ export class WAHAClient {
    * Get session me info
    * GET /api/sessions/:session/me
    */
-  async getSessionMe(): Promise<any> {
-    const endpoint = `/api/sessions/${this.session}/me`;
+  async getSessionMe(session: string): Promise<any> {
+    const endpoint = `/api/sessions/${session}/me`;
 
     return this.request<any>(endpoint, {
       method: "GET",
@@ -1666,14 +1660,14 @@ export class WAHAClient {
    * Get QR code for authentication
    * GET /api/:session/auth/qr
    */
-  async getQRCode(params?: {
+  async getQRCode(session: string, params?: {
     format?: "image" | "base64" | "raw";
   }): Promise<any> {
     const queryParams: Record<string, any> = {};
     if (params?.format) queryParams.format = params.format;
 
     const queryString = this.buildQueryString(queryParams);
-    const endpoint = `/api/${this.session}/auth/qr${queryString}`;
+    const endpoint = `/api/${session}/auth/qr${queryString}`;
 
     return this.request<any>(endpoint, {
       method: "GET",
@@ -1684,7 +1678,7 @@ export class WAHAClient {
    * Request pairing code for authentication
    * POST /api/:session/auth/request-code
    */
-  async requestPairingCode(params: {
+  async requestPairingCode(session: string, params: {
     phoneNumber: string;
   }): Promise<{ code: string }> {
     const { phoneNumber } = params;
@@ -1695,7 +1689,7 @@ export class WAHAClient {
 
     const body = { phoneNumber };
 
-    return this.request<{ code: string }>(`/api/${this.session}/auth/request-code`, {
+    return this.request<{ code: string }>(`/api/${session}/auth/request-code`, {
       method: "POST",
       body: JSON.stringify(body),
     });
@@ -1705,11 +1699,11 @@ export class WAHAClient {
    * Get screenshot
    * GET /api/screenshot
    */
-  async getScreenshot(params?: {
+  async getScreenshot(session: string, params?: {
     format?: "image" | "base64";
   }): Promise<any> {
     const queryParams: Record<string, any> = {
-      session: this.session,
+      session: session,
     };
     if (params?.format) queryParams.format = params.format;
 
@@ -1727,7 +1721,7 @@ export class WAHAClient {
    * Send a poll
    * POST /api/sendPoll
    */
-  async sendPoll(params: {
+  async sendPoll(session: string, params: {
     chatId: string;
     poll: {
       name: string;
@@ -1753,7 +1747,7 @@ export class WAHAClient {
         options: poll.options,
         multipleAnswers: poll.multipleAnswers || false,
       },
-      session: this.session,
+      session: session,
       reply_to,
     };
 
@@ -1767,7 +1761,7 @@ export class WAHAClient {
    * Send poll vote
    * POST /api/sendPollVote
    */
-  async sendPollVote(params: {
+  async sendPollVote(session: string, params: {
     chatId: string;
     pollMessageId: string;
     pollServerId?: number;
@@ -1792,7 +1786,7 @@ export class WAHAClient {
       pollMessageId,
       pollServerId: pollServerId || null,
       votes,
-      session: this.session,
+      session: session,
     };
 
     await this.request<void>("/api/sendPollVote", {
@@ -1807,7 +1801,7 @@ export class WAHAClient {
    * Send text status
    * POST /api/sendText
    */
-  async sendTextStatus(params: {
+  async sendTextStatus(session: string, params: {
     text: string;
     backgroundColor?: string;
     font?: number;
@@ -1821,7 +1815,7 @@ export class WAHAClient {
     const body: any = {
       chatId: "status@broadcast",
       text,
-      session: this.session,
+      session: session,
     };
 
     if (backgroundColor) body.backgroundColor = backgroundColor;
@@ -1837,7 +1831,7 @@ export class WAHAClient {
    * Send image/video status
    * POST /api/sendImage or /api/sendVideo
    */
-  async sendMediaStatus(params: {
+  async sendMediaStatus(session: string, params: {
     file: {
       mimetype: string;
       url?: string;
@@ -1861,7 +1855,7 @@ export class WAHAClient {
     const body = {
       chatId: "status@broadcast",
       file,
-      session: this.session,
+      session: session,
       caption,
     };
 
@@ -1875,8 +1869,8 @@ export class WAHAClient {
    * Get statuses
    * GET /api/:session/status
    */
-  async getStatuses(): Promise<any[]> {
-    const endpoint = `/api/${this.session}/status`;
+  async getStatuses(session: string): Promise<any[]> {
+    const endpoint = `/api/${session}/status`;
 
     return this.request<any[]>(endpoint, {
       method: "GET",
@@ -1887,12 +1881,12 @@ export class WAHAClient {
    * Delete status
    * DELETE /api/:session/status/:messageId
    */
-  async deleteStatus(messageId: string): Promise<void> {
+  async deleteStatus(session: string, messageId: string): Promise<void> {
     if (!messageId) {
       throw new WAHAError("messageId is required");
     }
 
-    const endpoint = `/api/${this.session}/status/${encodeURIComponent(messageId)}`;
+    const endpoint = `/api/${session}/status/${encodeURIComponent(messageId)}`;
 
     await this.request<void>(endpoint, {
       method: "DELETE",
@@ -1905,8 +1899,8 @@ export class WAHAClient {
    * Get all labels
    * GET /api/:session/labels
    */
-  async getLabels(): Promise<any[]> {
-    const endpoint = `/api/${this.session}/labels`;
+  async getLabels(session: string): Promise<any[]> {
+    const endpoint = `/api/${session}/labels`;
 
     return this.request<any[]>(endpoint, {
       method: "GET",
@@ -1917,12 +1911,12 @@ export class WAHAClient {
    * Get chat labels
    * GET /api/:session/chats/:chatId/labels
    */
-  async getChatLabels(chatId: string): Promise<any[]> {
+  async getChatLabels(session: string, chatId: string): Promise<any[]> {
     if (!chatId) {
       throw new WAHAError("chatId is required");
     }
 
-    const endpoint = `/api/${this.session}/chats/${encodeURIComponent(chatId)}/labels`;
+    const endpoint = `/api/${session}/chats/${encodeURIComponent(chatId)}/labels`;
 
     return this.request<any[]>(endpoint, {
       method: "GET",
@@ -1933,7 +1927,7 @@ export class WAHAClient {
    * Put labels on chat
    * PUT /api/:session/chats/:chatId/labels
    */
-  async putChatLabels(params: {
+  async putChatLabels(session: string, params: {
     chatId: string;
     labels: Array<{ id: string } | string>;
   }): Promise<void> {
@@ -1947,7 +1941,7 @@ export class WAHAClient {
       throw new WAHAError("labels array is required");
     }
 
-    const endpoint = `/api/${this.session}/chats/${encodeURIComponent(chatId)}/labels`;
+    const endpoint = `/api/${session}/chats/${encodeURIComponent(chatId)}/labels`;
 
     const body = {
       labels: labels.map((label) =>
@@ -1965,7 +1959,7 @@ export class WAHAClient {
    * Delete label from chat
    * DELETE /api/:session/chats/:chatId/labels/:labelId
    */
-  async deleteChatLabel(chatId: string, labelId: string): Promise<void> {
+  async deleteChatLabel(session: string, chatId: string, labelId: string): Promise<void> {
     if (!chatId) {
       throw new WAHAError("chatId is required");
     }
@@ -1974,7 +1968,7 @@ export class WAHAClient {
       throw new WAHAError("labelId is required");
     }
 
-    const endpoint = `/api/${this.session}/chats/${encodeURIComponent(
+    const endpoint = `/api/${session}/chats/${encodeURIComponent(
       chatId
     )}/labels/${encodeURIComponent(labelId)}`;
 
@@ -1987,7 +1981,7 @@ export class WAHAClient {
    * Get message labels
    * GET /api/:session/chats/:chatId/messages/:messageId/labels
    */
-  async getMessageLabels(chatId: string, messageId: string): Promise<any[]> {
+  async getMessageLabels(session: string, chatId: string, messageId: string): Promise<any[]> {
     if (!chatId) {
       throw new WAHAError("chatId is required");
     }
@@ -1996,7 +1990,7 @@ export class WAHAClient {
       throw new WAHAError("messageId is required");
     }
 
-    const endpoint = `/api/${this.session}/chats/${encodeURIComponent(
+    const endpoint = `/api/${session}/chats/${encodeURIComponent(
       chatId
     )}/messages/${encodeURIComponent(messageId)}/labels`;
 
@@ -2009,7 +2003,7 @@ export class WAHAClient {
    * Put labels on message
    * PUT /api/:session/chats/:chatId/messages/:messageId/labels
    */
-  async putMessageLabels(params: {
+  async putMessageLabels(session: string, params: {
     chatId: string;
     messageId: string;
     labels: Array<{ id: string } | string>;
@@ -2028,7 +2022,7 @@ export class WAHAClient {
       throw new WAHAError("labels array is required");
     }
 
-    const endpoint = `/api/${this.session}/chats/${encodeURIComponent(
+    const endpoint = `/api/${session}/chats/${encodeURIComponent(
       chatId
     )}/messages/${encodeURIComponent(messageId)}/labels`;
 
@@ -2048,11 +2042,9 @@ export class WAHAClient {
    * Delete label from message
    * DELETE /api/:session/chats/:chatId/messages/:messageId/labels/:labelId
    */
-  async deleteMessageLabel(
-    chatId: string,
+  async deleteMessageLabel(session: string, chatId: string,
     messageId: string,
-    labelId: string
-  ): Promise<void> {
+    labelId: string): Promise<void> {
     if (!chatId) {
       throw new WAHAError("chatId is required");
     }
@@ -2065,7 +2057,7 @@ export class WAHAClient {
       throw new WAHAError("labelId is required");
     }
 
-    const endpoint = `/api/${this.session}/chats/${encodeURIComponent(
+    const endpoint = `/api/${session}/chats/${encodeURIComponent(
       chatId
     )}/messages/${encodeURIComponent(messageId)}/labels/${encodeURIComponent(labelId)}`;
 

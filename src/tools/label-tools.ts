@@ -10,7 +10,12 @@ export const labelTools = [
       "Get all available labels from WhatsApp Business. Labels are used to organize and categorize chats and messages. Only available for WhatsApp Business accounts.",
     inputSchema: {
       type: "object" as const,
-      properties: {},
+      properties: {
+        session: {
+          type: "string" as const,
+          description:
+            "WhatsApp session name (optional, defaults to configured WAHA_SESSION if not provided)",
+        },},
     },
   },
   {
@@ -20,6 +25,11 @@ export const labelTools = [
     inputSchema: {
       type: "object" as const,
       properties: {
+        session: {
+          type: "string" as const,
+          description:
+            "WhatsApp session name (optional, defaults to configured WAHA_SESSION if not provided)",
+        },
         chatId: {
           type: "string" as const,
           description: "Chat ID (format: number@c.us)",
@@ -35,6 +45,11 @@ export const labelTools = [
     inputSchema: {
       type: "object" as const,
       properties: {
+        session: {
+          type: "string" as const,
+          description:
+            "WhatsApp session name (optional, defaults to configured WAHA_SESSION if not provided)",
+        },
         chatId: {
           type: "string" as const,
           description: "Chat ID (format: number@c.us)",
@@ -58,6 +73,11 @@ export const labelTools = [
     inputSchema: {
       type: "object" as const,
       properties: {
+        session: {
+          type: "string" as const,
+          description:
+            "WhatsApp session name (optional, defaults to configured WAHA_SESSION if not provided)",
+        },
         chatId: {
           type: "string" as const,
           description: "Chat ID (format: number@c.us)",
@@ -77,6 +97,11 @@ export const labelTools = [
     inputSchema: {
       type: "object" as const,
       properties: {
+        session: {
+          type: "string" as const,
+          description:
+            "WhatsApp session name (optional, defaults to configured WAHA_SESSION if not provided)",
+        },
         chatId: {
           type: "string" as const,
           description: "Chat ID (format: number@c.us)",
@@ -96,6 +121,11 @@ export const labelTools = [
     inputSchema: {
       type: "object" as const,
       properties: {
+        session: {
+          type: "string" as const,
+          description:
+            "WhatsApp session name (optional, defaults to configured WAHA_SESSION if not provided)",
+        },
         chatId: {
           type: "string" as const,
           description: "Chat ID (format: number@c.us)",
@@ -123,6 +153,11 @@ export const labelTools = [
     inputSchema: {
       type: "object" as const,
       properties: {
+        session: {
+          type: "string" as const,
+          description:
+            "WhatsApp session name (optional, defaults to configured WAHA_SESSION if not provided)",
+        },
         chatId: {
           type: "string" as const,
           description: "Chat ID (format: number@c.us)",
