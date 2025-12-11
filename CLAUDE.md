@@ -4,9 +4,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-WAHA MCP Server is a Model Context Protocol server that enables AI assistants to interact with WhatsApp through the WAHA (WhatsApp HTTP API) platform. It provides tools for chat management, message operations, and real-time webhook notifications.
+WAHA MCP Server is a comprehensive Model Context Protocol server that enables AI assistants to interact with WhatsApp through the WAHA (WhatsApp HTTP API) platform. It provides **74+ tools** covering all major WAHA capabilities: session management, messaging, polls, status/stories, groups, contacts, labels, profile management, presence, and real-time webhook notifications.
 
 **Tech Stack**: TypeScript, Node.js, MCP SDK, WAHA API, Express (webhooks), ngrok (webhook tunneling)
+
+**Recent Updates (2025-12-11)**: Added comprehensive WAHA API support including:
+- 13 session management tools (create, start, stop, restart, QR/pairing auth)
+- 2 poll tools (send polls, vote on polls)
+- 4 status/stories tools (send text/media status, get/delete)
+- 7 label tools (WhatsApp Business labels for chats/messages)
+- 4 profile management tools (set name, status, picture; delete picture)
+- All 21 group management tools fully exposed and documented
+- All tools with proper error handling and formatters
 
 ## Build & Development Commands
 
@@ -146,11 +155,18 @@ This opens a web UI to test tools, view schemas, and debug request/response data
 
 ## Key Files
 
-- `src/index.ts`: Server entry point and main orchestration
+- `src/index.ts`: Server entry point, main orchestration, and tool registration
 - `src/config.ts`: Configuration loading and validation from environment
-- `src/client/waha-client.ts`: WAHA API client implementation
+- `src/client/waha-client.ts`: Comprehensive WAHA API client with 90+ methods
 - `src/types/waha.ts`: TypeScript interfaces for WAHA entities
 - `src/tools/formatters.ts`: Response formatters for LLM consumption
+- `src/tools/all-tools.ts`: Centralized tool definitions (session, poll, status, label)
+- `src/tools/new-handlers.ts`: Tool handlers for new features
+- `src/tools/session-tools.ts`: Session management tool definitions
+- `src/tools/poll-tools.ts`: Poll tool definitions
+- `src/tools/status-tools.ts`: Status/stories tool definitions
+- `src/tools/label-tools.ts`: Label tool definitions
+- `src/tools/profile-tools.ts`: Profile management tool definitions
 - `src/resources/manager/ResourceManager.ts`: Resource registry and routing
 - `src/webhooks/index.ts`: Webhook system factory and manager
 

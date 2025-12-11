@@ -1461,11 +1461,616 @@ export class WAHAClient {
     });
   }
 
+  // ==================== PROFILE MANAGEMENT ====================
+
+  /**
+   * Set my profile name
+   * PUT /api/:session/profile/name
+   */
+  async setMyProfileName(name: string): Promise<void> {
+    if (!name) {
+      throw new WAHAError("name is required");
+    }
+
+    const body = { name };
+
+    await this.request<void>(`/api/${this.session}/profile/name`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * Set my profile status (About)
+   * PUT /api/:session/profile/status
+   */
+  async setMyProfileStatus(status: string): Promise<void> {
+    if (!status) {
+      throw new WAHAError("status is required");
+    }
+
+    const body = { status };
+
+    await this.request<void>(`/api/${this.session}/profile/status`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * Set my profile picture
+   * PUT /api/:session/profile/picture
+   */
+  async setMyProfilePicture(file: {
+    url?: string;
+    data?: string;
+    mimetype?: string;
+  }): Promise<void> {
+    if (!file || (!file.url && !file.data)) {
+      throw new WAHAError("file with url or data is required");
+    }
+
+    const body = { file };
+
+    await this.request<void>(`/api/${this.session}/profile/picture`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * Delete my profile picture
+   * DELETE /api/:session/profile/picture
+   */
+  async deleteMyProfilePicture(): Promise<void> {
+    await this.request<void>(`/api/${this.session}/profile/picture`, {
+      method: "DELETE",
+    });
+  }
+
   /**
    * Validate chat ID format
    */
   static validateChatId(chatId: string): boolean {
     // Chat ID should be in format: number@c.us (individual) or number@g.us (group)
     return /^\d+@(c|g)\.us$/.test(chatId);
+  }
+
+  // ==================== SESSION MANAGEMENT ====================
+
+  /**
+   * List all sessions
+   * GET /api/sessions
+   */
+  async listSessions(params?: { all?: boolean }): Promise<any[]> {
+    const queryParams: Record<string, any> = {};
+    if (params?.all) queryParams.all = params.all;
+
+    const queryString = this.buildQueryString(queryParams);
+    const endpoint = `/api/sessions${queryString}`;
+
+    return this.request<any[]>(endpoint, {
+      method: "GET",
+    });
+  }
+
+  /**
+   * Get session information
+   * GET /api/sessions/:session
+   */
+  async getSession(params?: { expand?: string[] }): Promise<any> {
+    const queryParams: Record<string, any> = {};
+    if (params?.expand) queryParams.expand = params.expand;
+
+    const queryString = this.buildQueryString(queryParams);
+    const endpoint = `/api/sessions/${this.session}${queryString}`;
+
+    return this.request<any>(endpoint, {
+      method: "GET",
+    });
+  }
+
+  /**
+   * Create a new session
+   * POST /api/sessions
+   */
+  async createSession(params: {
+    name?: string;
+    start?: boolean;
+    config?: any;
+  }): Promise<any> {
+    const body: any = {};
+    if (params.name) body.name = params.name;
+    if (params.start !== undefined) body.start = params.start;
+    if (params.config) body.config = params.config;
+
+    return this.request<any>("/api/sessions", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * Start a session
+   * POST /api/sessions/:session/start
+   */
+  async startSession(): Promise<any> {
+    const endpoint = `/api/sessions/${this.session}/start`;
+
+    return this.request<any>(endpoint, {
+      method: "POST",
+    });
+  }
+
+  /**
+   * Stop a session
+   * POST /api/sessions/:session/stop
+   */
+  async stopSession(): Promise<any> {
+    const endpoint = `/api/sessions/${this.session}/stop`;
+
+    return this.request<any>(endpoint, {
+      method: "POST",
+    });
+  }
+
+  /**
+   * Restart a session
+   * POST /api/sessions/:session/restart
+   */
+  async restartSession(): Promise<any> {
+    const endpoint = `/api/sessions/${this.session}/restart`;
+
+    return this.request<any>(endpoint, {
+      method: "POST",
+    });
+  }
+
+  /**
+   * Logout a session
+   * POST /api/sessions/:session/logout
+   */
+  async logoutSession(): Promise<void> {
+    const endpoint = `/api/sessions/${this.session}/logout`;
+
+    await this.request<void>(endpoint, {
+      method: "POST",
+    });
+  }
+
+  /**
+   * Delete a session
+   * DELETE /api/sessions/:session
+   */
+  async deleteSession(): Promise<void> {
+    const endpoint = `/api/sessions/${this.session}`;
+
+    await this.request<void>(endpoint, {
+      method: "DELETE",
+    });
+  }
+
+  /**
+   * Get session me info
+   * GET /api/sessions/:session/me
+   */
+  async getSessionMe(): Promise<any> {
+    const endpoint = `/api/sessions/${this.session}/me`;
+
+    return this.request<any>(endpoint, {
+      method: "GET",
+    });
+  }
+
+  /**
+   * Get QR code for authentication
+   * GET /api/:session/auth/qr
+   */
+  async getQRCode(params?: {
+    format?: "image" | "base64" | "raw";
+  }): Promise<any> {
+    const queryParams: Record<string, any> = {};
+    if (params?.format) queryParams.format = params.format;
+
+    const queryString = this.buildQueryString(queryParams);
+    const endpoint = `/api/${this.session}/auth/qr${queryString}`;
+
+    return this.request<any>(endpoint, {
+      method: "GET",
+    });
+  }
+
+  /**
+   * Request pairing code for authentication
+   * POST /api/:session/auth/request-code
+   */
+  async requestPairingCode(params: {
+    phoneNumber: string;
+  }): Promise<{ code: string }> {
+    const { phoneNumber } = params;
+
+    if (!phoneNumber) {
+      throw new WAHAError("phoneNumber is required");
+    }
+
+    const body = { phoneNumber };
+
+    return this.request<{ code: string }>(`/api/${this.session}/auth/request-code`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * Get screenshot
+   * GET /api/screenshot
+   */
+  async getScreenshot(params?: {
+    format?: "image" | "base64";
+  }): Promise<any> {
+    const queryParams: Record<string, any> = {
+      session: this.session,
+    };
+    if (params?.format) queryParams.format = params.format;
+
+    const queryString = this.buildQueryString(queryParams);
+    const endpoint = `/api/screenshot${queryString}`;
+
+    return this.request<any>(endpoint, {
+      method: "GET",
+    });
+  }
+
+  // ==================== POLLS ====================
+
+  /**
+   * Send a poll
+   * POST /api/sendPoll
+   */
+  async sendPoll(params: {
+    chatId: string;
+    poll: {
+      name: string;
+      options: string[];
+      multipleAnswers?: boolean;
+    };
+    reply_to?: string;
+  }): Promise<SendMessageResponse> {
+    const { chatId, poll, reply_to } = params;
+
+    if (!chatId) {
+      throw new WAHAError("chatId is required");
+    }
+
+    if (!poll || !poll.name || !poll.options || poll.options.length === 0) {
+      throw new WAHAError("poll with name and options is required");
+    }
+
+    const body = {
+      chatId,
+      poll: {
+        name: poll.name,
+        options: poll.options,
+        multipleAnswers: poll.multipleAnswers || false,
+      },
+      session: this.session,
+      reply_to,
+    };
+
+    return this.request<SendMessageResponse>("/api/sendPoll", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * Send poll vote
+   * POST /api/sendPollVote
+   */
+  async sendPollVote(params: {
+    chatId: string;
+    pollMessageId: string;
+    pollServerId?: number;
+    votes: string[];
+  }): Promise<void> {
+    const { chatId, pollMessageId, pollServerId, votes } = params;
+
+    if (!chatId) {
+      throw new WAHAError("chatId is required");
+    }
+
+    if (!pollMessageId) {
+      throw new WAHAError("pollMessageId is required");
+    }
+
+    if (!votes || votes.length === 0) {
+      throw new WAHAError("votes array is required");
+    }
+
+    const body = {
+      chatId,
+      pollMessageId,
+      pollServerId: pollServerId || null,
+      votes,
+      session: this.session,
+    };
+
+    await this.request<void>("/api/sendPollVote", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  }
+
+  // ==================== STATUS/STORIES ====================
+
+  /**
+   * Send text status
+   * POST /api/sendText
+   */
+  async sendTextStatus(params: {
+    text: string;
+    backgroundColor?: string;
+    font?: number;
+  }): Promise<SendMessageResponse> {
+    const { text, backgroundColor, font } = params;
+
+    if (!text) {
+      throw new WAHAError("text is required");
+    }
+
+    const body: any = {
+      chatId: "status@broadcast",
+      text,
+      session: this.session,
+    };
+
+    if (backgroundColor) body.backgroundColor = backgroundColor;
+    if (font !== undefined) body.font = font;
+
+    return this.request<SendMessageResponse>("/api/sendText", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * Send image/video status
+   * POST /api/sendImage or /api/sendVideo
+   */
+  async sendMediaStatus(params: {
+    file: {
+      mimetype: string;
+      url?: string;
+      data?: string;
+      filename?: string;
+    };
+    mediaType: "image" | "video";
+    caption?: string;
+  }): Promise<SendMessageResponse> {
+    const { file, mediaType, caption } = params;
+
+    if (!file || (!file.url && !file.data)) {
+      throw new WAHAError("file with url or data is required");
+    }
+
+    const endpointMap = {
+      image: "/api/sendImage",
+      video: "/api/sendVideo",
+    };
+
+    const body = {
+      chatId: "status@broadcast",
+      file,
+      session: this.session,
+      caption,
+    };
+
+    return this.request<SendMessageResponse>(endpointMap[mediaType], {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * Get statuses
+   * GET /api/:session/status
+   */
+  async getStatuses(): Promise<any[]> {
+    const endpoint = `/api/${this.session}/status`;
+
+    return this.request<any[]>(endpoint, {
+      method: "GET",
+    });
+  }
+
+  /**
+   * Delete status
+   * DELETE /api/:session/status/:messageId
+   */
+  async deleteStatus(messageId: string): Promise<void> {
+    if (!messageId) {
+      throw new WAHAError("messageId is required");
+    }
+
+    const endpoint = `/api/${this.session}/status/${encodeURIComponent(messageId)}`;
+
+    await this.request<void>(endpoint, {
+      method: "DELETE",
+    });
+  }
+
+  // ==================== LABELS ====================
+
+  /**
+   * Get all labels
+   * GET /api/:session/labels
+   */
+  async getLabels(): Promise<any[]> {
+    const endpoint = `/api/${this.session}/labels`;
+
+    return this.request<any[]>(endpoint, {
+      method: "GET",
+    });
+  }
+
+  /**
+   * Get chat labels
+   * GET /api/:session/chats/:chatId/labels
+   */
+  async getChatLabels(chatId: string): Promise<any[]> {
+    if (!chatId) {
+      throw new WAHAError("chatId is required");
+    }
+
+    const endpoint = `/api/${this.session}/chats/${encodeURIComponent(chatId)}/labels`;
+
+    return this.request<any[]>(endpoint, {
+      method: "GET",
+    });
+  }
+
+  /**
+   * Put labels on chat
+   * PUT /api/:session/chats/:chatId/labels
+   */
+  async putChatLabels(params: {
+    chatId: string;
+    labels: Array<{ id: string } | string>;
+  }): Promise<void> {
+    const { chatId, labels } = params;
+
+    if (!chatId) {
+      throw new WAHAError("chatId is required");
+    }
+
+    if (!labels || labels.length === 0) {
+      throw new WAHAError("labels array is required");
+    }
+
+    const endpoint = `/api/${this.session}/chats/${encodeURIComponent(chatId)}/labels`;
+
+    const body = {
+      labels: labels.map((label) =>
+        typeof label === "string" ? { id: label } : label
+      ),
+    };
+
+    await this.request<void>(endpoint, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * Delete label from chat
+   * DELETE /api/:session/chats/:chatId/labels/:labelId
+   */
+  async deleteChatLabel(chatId: string, labelId: string): Promise<void> {
+    if (!chatId) {
+      throw new WAHAError("chatId is required");
+    }
+
+    if (!labelId) {
+      throw new WAHAError("labelId is required");
+    }
+
+    const endpoint = `/api/${this.session}/chats/${encodeURIComponent(
+      chatId
+    )}/labels/${encodeURIComponent(labelId)}`;
+
+    await this.request<void>(endpoint, {
+      method: "DELETE",
+    });
+  }
+
+  /**
+   * Get message labels
+   * GET /api/:session/chats/:chatId/messages/:messageId/labels
+   */
+  async getMessageLabels(chatId: string, messageId: string): Promise<any[]> {
+    if (!chatId) {
+      throw new WAHAError("chatId is required");
+    }
+
+    if (!messageId) {
+      throw new WAHAError("messageId is required");
+    }
+
+    const endpoint = `/api/${this.session}/chats/${encodeURIComponent(
+      chatId
+    )}/messages/${encodeURIComponent(messageId)}/labels`;
+
+    return this.request<any[]>(endpoint, {
+      method: "GET",
+    });
+  }
+
+  /**
+   * Put labels on message
+   * PUT /api/:session/chats/:chatId/messages/:messageId/labels
+   */
+  async putMessageLabels(params: {
+    chatId: string;
+    messageId: string;
+    labels: Array<{ id: string } | string>;
+  }): Promise<void> {
+    const { chatId, messageId, labels } = params;
+
+    if (!chatId) {
+      throw new WAHAError("chatId is required");
+    }
+
+    if (!messageId) {
+      throw new WAHAError("messageId is required");
+    }
+
+    if (!labels || labels.length === 0) {
+      throw new WAHAError("labels array is required");
+    }
+
+    const endpoint = `/api/${this.session}/chats/${encodeURIComponent(
+      chatId
+    )}/messages/${encodeURIComponent(messageId)}/labels`;
+
+    const body = {
+      labels: labels.map((label) =>
+        typeof label === "string" ? { id: label } : label
+      ),
+    };
+
+    await this.request<void>(endpoint, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * Delete label from message
+   * DELETE /api/:session/chats/:chatId/messages/:messageId/labels/:labelId
+   */
+  async deleteMessageLabel(
+    chatId: string,
+    messageId: string,
+    labelId: string
+  ): Promise<void> {
+    if (!chatId) {
+      throw new WAHAError("chatId is required");
+    }
+
+    if (!messageId) {
+      throw new WAHAError("messageId is required");
+    }
+
+    if (!labelId) {
+      throw new WAHAError("labelId is required");
+    }
+
+    const endpoint = `/api/${this.session}/chats/${encodeURIComponent(
+      chatId
+    )}/messages/${encodeURIComponent(messageId)}/labels/${encodeURIComponent(labelId)}`;
+
+    await this.request<void>(endpoint, {
+      method: "DELETE",
+    });
   }
 }

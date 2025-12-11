@@ -4,9 +4,20 @@ A Model Context Protocol (MCP) server that enables AI assistants to interact wit
 
 ## Features
 
-- **Chat Management**: Get overview of recent WhatsApp chats
-- **Message Operations**: Retrieve, send, and mark messages as read
-- **MCP Integration**: Full compatibility with MCP clients like Claude Desktop
+- **🔐 Session Management**: Complete control over WhatsApp sessions - create, start, stop, restart, authenticate
+- **📝 Message Operations**: Send, receive, edit, delete, pin, react, and mark messages as read
+- **📁 Chat Management**: Archive, delete, and organize chats with profile pictures
+- **📊 Polls**: Create and vote on polls with single or multiple answer options
+- **📸 Status/Stories**: Send and manage WhatsApp statuses (text, images, videos)
+- **👥 Group Management**: Full group control - create, manage members, settings, and invite links
+- **👤 Contact Management**: Check contacts, get info, profile pictures, block/unblock
+- **🏷️ Labels**: WhatsApp Business labels for chats and messages
+- **📨 Rich Media**: Send images, videos, audio, documents, locations, and contacts
+- **👁️ Presence**: Monitor and set online/typing status
+- **🔄 Real-time Events**: Webhook and WebSocket support for live updates
+- **🎯 MCP Integration**: Full compatibility with MCP clients like Claude Desktop
+
+**Total: 74+ comprehensive WAHA API tools** covering all major WhatsApp functionality!
 
 ## Installation
 
@@ -87,68 +98,169 @@ Add this to your Claude Desktop MCP configuration:
 
 ## Available Tools
 
-### waha_get_chats
-Get overview of recent WhatsApp chats. Returns chat ID, name, last message preview, and unread count.
+The WAHA MCP Server now provides **74+ comprehensive tools** covering all major WAHA API capabilities:
 
-**Parameters:**
-- `limit` (optional): Number of chats to retrieve (default: 10, max: 100)
-- `offset` (optional): Offset for pagination
-- `chatIds` (optional): Array of specific chat IDs to filter (format: `number@c.us`)
+### 📝 Message Management (4 tools)
+- **waha_get_chats**: Get overview of recent chats with unread counts
+- **waha_get_messages**: Retrieve messages from a specific chat
+- **waha_send_message**: Send text messages with link preview and reply support
+- **waha_mark_chat_read**: Mark messages as read in a chat
 
-**Example:**
-```json
-{
-  "limit": 10
-}
-```
+### ✏️ Message Operations (7 tools)
+- **waha_delete_message**: Delete a specific message
+- **waha_edit_message**: Edit a sent message
+- **waha_pin_message**: Pin a message in a chat
+- **waha_unpin_message**: Unpin a message
+- **waha_clear_chat_messages**: Clear all messages from a chat
+- **waha_delete_chat**: Delete a chat completely
+- **waha_star_message**: Star or unstar a message
 
-### waha_get_messages
-Get messages from a specific WhatsApp chat. Returns message content, sender, timestamp, and status.
+### 📁 Chat Management (6 tools)
+- **waha_archive_chat**: Archive a chat
+- **waha_unarchive_chat**: Unarchive a chat
+- **waha_mark_chat_unread**: Mark a chat as unread
+- **waha_get_chat_picture**: Get chat profile picture
+- **waha_react_to_message**: React to a message with emoji
 
-**Parameters:**
-- `chatId` (required): Chat ID to get messages from (format: `number@c.us` for individual, `number@g.us` for group)
-- `limit` (optional): Number of messages to retrieve (default: 10, max: 100)
-- `offset` (optional): Offset for pagination
-- `downloadMedia` (optional): Download media files (default: false)
+### 📨 Rich Media (6 tools)
+- **waha_send_media**: Send images, videos, or documents
+- **waha_send_audio**: Send audio/voice messages
+- **waha_send_location**: Send location coordinates
+- **waha_send_contact**: Send contact cards (vCard)
 
-**Example:**
+### 📊 Polls (2 tools)
+- **waha_send_poll**: Send polls with single or multiple answer options
+- **waha_send_poll_vote**: Vote on existing polls
+
+### 📸 Status/Stories (4 tools)
+- **waha_send_text_status**: Send text status with custom styling
+- **waha_send_media_status**: Send image/video status
+- **waha_get_statuses**: Get available statuses from contacts
+- **waha_delete_status**: Delete your own status
+
+### 👥 Group Management (18 tools)
+- **waha_get_groups**: List all groups with pagination
+- **waha_get_group_info**: Get detailed group information
+- **waha_create_group**: Create a new group
+- **waha_get_group_picture**: Get group profile picture
+- **waha_set_group_picture**: Set group profile picture
+- **waha_delete_group_picture**: Remove group picture
+- **waha_update_group_subject**: Update group name
+- **waha_update_group_description**: Update group description
+- **waha_leave_group**: Leave a group
+- **waha_get_group_participants**: List group members
+- **waha_add_group_participants**: Add members to group
+- **waha_remove_group_participants**: Remove members from group
+- **waha_promote_group_admin**: Promote members to admin
+- **waha_demote_group_admin**: Demote admins
+- **waha_get_group_invite_code**: Get group invite link
+- **waha_revoke_group_invite_code**: Revoke and generate new invite link
+- **waha_join_group**: Join group via invite code
+- **waha_get_group_join_info**: Get group info from invite code
+- **waha_set_group_messages_admin_only**: Restrict messaging to admins
+- **waha_set_group_info_admin_only**: Restrict info changes to admins
+- **waha_get_groups_count**: Get total group count
+
+### 👤 Contact Management (7 tools)
+- **waha_get_contact**: Get contact information
+- **waha_get_all_contacts**: List all contacts with pagination
+- **waha_check_contact_exists**: Check if phone number is on WhatsApp
+- **waha_get_contact_about**: Get contact's status/about text
+- **waha_get_contact_profile_picture**: Get contact's profile picture
+- **waha_block_contact**: Block a contact
+- **waha_unblock_contact**: Unblock a contact
+
+### 🏷️ Labels (WhatsApp Business) (7 tools)
+- **waha_get_labels**: Get all available labels
+- **waha_get_chat_labels**: Get labels assigned to a chat
+- **waha_put_chat_labels**: Assign labels to a chat
+- **waha_delete_chat_label**: Remove label from a chat
+- **waha_get_message_labels**: Get labels on a message
+- **waha_put_message_labels**: Assign labels to a message
+- **waha_delete_message_label**: Remove label from a message
+
+### 👤 Profile Management (4 tools)
+- **waha_set_my_profile_name**: Set your WhatsApp display name
+- **waha_set_my_profile_status**: Set your About text
+- **waha_set_my_profile_picture**: Upload/update profile picture
+- **waha_delete_my_profile_picture**: Remove profile picture
+
+### 👁️ Presence/Status (4 tools)
+- **waha_get_presence**: Get presence info for a chat
+- **waha_subscribe_presence**: Subscribe to presence updates
+- **waha_set_presence**: Set your presence (online, typing, etc.)
+- **waha_get_all_presence**: Get all subscribed presence info
+
+### 🔐 Session Management (13 tools)
+- **waha_list_sessions**: List all WhatsApp sessions
+- **waha_get_session**: Get detailed session information
+- **waha_create_session**: Create a new session with configuration
+- **waha_start_session**: Start a stopped session
+- **waha_stop_session**: Stop a running session
+- **waha_restart_session**: Restart a session
+- **waha_logout_session**: Logout and clear authentication
+- **waha_delete_session**: Permanently delete a session
+- **waha_get_session_me**: Get authenticated account info
+- **waha_get_qr_code**: Get QR code for authentication
+- **waha_request_pairing_code**: Request pairing code for phone auth
+- **waha_get_screenshot**: Get session screenshot (WEBJS only)
+
+---
+
+### Example: waha_send_poll
+Send a poll to a WhatsApp chat with multiple options:
+
 ```json
 {
   "chatId": "1234567890@c.us",
-  "limit": 10
+  "poll": {
+    "name": "What's your favorite programming language?",
+    "options": ["Python", "JavaScript", "TypeScript", "Go"],
+    "multipleAnswers": false
+  }
 }
 ```
 
-### waha_send_message
-Send a text message to a WhatsApp chat. Returns message ID and delivery timestamp.
+### Example: waha_create_session
+Create a new WhatsApp session with webhook configuration:
 
-**Parameters:**
-- `chatId` (required): Chat ID to send message to (format: `number@c.us`)
-- `text` (required): Message text to send
-- `replyTo` (optional): Message ID to reply to
-- `linkPreview` (optional): Enable link preview (default: true)
-
-**Example:**
 ```json
 {
-  "chatId": "1234567890@c.us",
-  "text": "Hello from MCP!"
+  "name": "my-session",
+  "start": true,
+  "config": {
+    "webhooks": [{
+      "url": "https://your-webhook-url.com",
+      "events": ["message", "message.ack", "session.status"]
+    }],
+    "metadata": {
+      "user_id": "123",
+      "department": "support"
+    }
+  }
 }
 ```
 
-### waha_mark_chat_read
-Mark messages in a chat as read. Can specify number of recent messages or time range in days.
+### Example: waha_set_my_profile_picture
+Update your WhatsApp profile picture:
 
-**Parameters:**
-- `chatId` (required): Chat ID to mark as read (format: `number@c.us`)
-- `messages` (optional): Number of recent messages to mark as read (default: 30)
-- `days` (optional): Mark messages from last N days as read (default: 7)
-
-**Example:**
 ```json
 {
-  "chatId": "1234567890@c.us",
-  "messages": 30
+  "file": {
+    "url": "https://example.com/my-profile-pic.jpg",
+    "mimetype": "image/jpeg"
+  }
+}
+```
+
+Or using base64:
+
+```json
+{
+  "file": {
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAUA...",
+    "mimetype": "image/png"
+  }
 }
 ```
 
