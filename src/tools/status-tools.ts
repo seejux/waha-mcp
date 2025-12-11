@@ -40,15 +40,15 @@ export const statusTools = [
     inputSchema: {
       type: "object" as const,
       properties: {
-        file: {
-          type: "object" as const,
-          description: "Media file to send",
-          properties: {
         session: {
           type: "string" as const,
           description:
             "WhatsApp session name (optional, defaults to configured WAHA_SESSION if not provided)",
         },
+        file: {
+          type: "object" as const,
+          description: "Media file to send",
+          properties: {
             url: {
               type: "string" as const,
               description: "URL to the media file",
