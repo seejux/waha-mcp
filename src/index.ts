@@ -14,6 +14,8 @@ import {
   formatSendMessageSuccess,
 } from "./tools/formatters.js";
 import { createResourceManager, ResourceManager } from "./resources/index.js";
+import { allNewTools } from "./tools/all-tools.js";
+import * as newHandlers from "./tools/new-handlers.js";
 
 // Webhook types (imported conditionally below)
 type WebhookManager = any;
@@ -1038,6 +1040,8 @@ class WAHAMCPServer {
               properties: {},
             },
           },
+          // === NEW TOOLS: Session Management, Polls, Status, Labels ===
+          ...allNewTools,
         ],
       };
     });
@@ -1154,6 +1158,75 @@ class WAHAMCPServer {
             return await this.handleSetPresence(args);
           case "waha_get_all_presence":
             return await this.handleGetAllPresence(args);
+          
+          // === NEW HANDLERS: Session Management ===
+          case "waha_list_sessions":
+            return await newHandlers.handleListSessions(this.wahaClient, args);
+          case "waha_get_session":
+            return await newHandlers.handleGetSession(this.wahaClient, args);
+          case "waha_create_session":
+            return await newHandlers.handleCreateSession(this.wahaClient, args);
+          case "waha_start_session":
+            return await newHandlers.handleStartSession(this.wahaClient);
+          case "waha_stop_session":
+            return await newHandlers.handleStopSession(this.wahaClient);
+          case "waha_restart_session":
+            return await newHandlers.handleRestartSession(this.wahaClient);
+          case "waha_logout_session":
+            return await newHandlers.handleLogoutSession(this.wahaClient);
+          case "waha_delete_session":
+            return await newHandlers.handleDeleteSession(this.wahaClient);
+          case "waha_get_session_me":
+            return await newHandlers.handleGetSessionMe(this.wahaClient);
+          case "waha_get_qr_code":
+            return await newHandlers.handleGetQRCode(this.wahaClient, args);
+          case "waha_request_pairing_code":
+            return await newHandlers.handleRequestPairingCode(this.wahaClient, args);
+          case "waha_get_screenshot":
+            return await newHandlers.handleGetScreenshot(this.wahaClient, args);
+          
+          // === NEW HANDLERS: Polls ===
+          case "waha_send_poll":
+            return await newHandlers.handleSendPoll(this.wahaClient, args);
+          case "waha_send_poll_vote":
+            return await newHandlers.handleSendPollVote(this.wahaClient, args);
+          
+          // === NEW HANDLERS: Status/Stories ===
+          case "waha_send_text_status":
+            return await newHandlers.handleSendTextStatus(this.wahaClient, args);
+          case "waha_send_media_status":
+            return await newHandlers.handleSendMediaStatus(this.wahaClient, args);
+          case "waha_get_statuses":
+            return await newHandlers.handleGetStatuses(this.wahaClient);
+          case "waha_delete_status":
+            return await newHandlers.handleDeleteStatus(this.wahaClient, args);
+          
+          // === NEW HANDLERS: Labels ===
+          case "waha_get_labels":
+            return await newHandlers.handleGetLabels(this.wahaClient);
+          case "waha_get_chat_labels":
+            return await newHandlers.handleGetChatLabels(this.wahaClient, args);
+          case "waha_put_chat_labels":
+            return await newHandlers.handlePutChatLabels(this.wahaClient, args);
+          case "waha_delete_chat_label":
+            return await newHandlers.handleDeleteChatLabel(this.wahaClient, args);
+          case "waha_get_message_labels":
+            return await newHandlers.handleGetMessageLabels(this.wahaClient, args);
+          case "waha_put_message_labels":
+            return await newHandlers.handlePutMessageLabels(this.wahaClient, args);
+          case "waha_delete_message_label":
+            return await newHandlers.handleDeleteMessageLabel(this.wahaClient, args);
+          
+          // === NEW HANDLERS: Profile Management ===
+          case "waha_set_my_profile_name":
+            return await newHandlers.handleSetMyProfileName(this.wahaClient, args);
+          case "waha_set_my_profile_status":
+            return await newHandlers.handleSetMyProfileStatus(this.wahaClient, args);
+          case "waha_set_my_profile_picture":
+            return await newHandlers.handleSetMyProfilePicture(this.wahaClient, args);
+          case "waha_delete_my_profile_picture":
+            return await newHandlers.handleDeleteMyProfilePicture(this.wahaClient);
+          
           default:
             throw new Error(`Unknown tool: ${name}`);
         }

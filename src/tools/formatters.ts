@@ -117,3 +117,141 @@ export function truncate(text: string, maxLength: number): string {
   }
   return text.substring(0, maxLength - 3) + '...';
 }
+
+/**
+ * Format session information
+ */
+export function formatSession(session: any): string {
+  const lines: string[] = [];
+
+  lines.push(`Session: ${session.name}`);
+  lines.push(`Status: ${session.status}`);
+  
+  if (session.me) {
+    lines.push(`Account: ${session.me.pushName || 'Unknown'} (${session.me.id})`);
+  }
+
+  if (session.engine) {
+    lines.push(`Engine: ${session.engine.engine || 'Unknown'}`);
+  }
+
+  if (session.metadata && Object.keys(session.metadata).length > 0) {
+    lines.push(`Metadata: ${JSON.stringify(session.metadata, null, 2)}`);
+  }
+
+  if (session.config?.webhooks && session.config.webhooks.length > 0) {
+    lines.push(`Webhooks: ${session.config.webhooks.length} configured`);
+  }
+
+  return lines.join('\n');
+}
+
+/**
+ * Format multiple sessions
+ */
+export function formatSessions(sessions: any[]): string {
+  if (sessions.length === 0) {
+    return "No sessions found.";
+  }
+
+  const sections = sessions.map((session, index) => {
+    return `\n[Session ${index + 1}]\n${formatSession(session)}`;
+  });
+
+  return `Found ${sessions.length} session${sessions.length > 1 ? 's' : ''}:\n${sections.join('\n')}`;
+}
+
+/**
+ * Format poll send success
+ */
+export function formatPollSuccess(chatId: string, messageId: string): string {
+  return `Poll sent successfully!\nChat: ${chatId}\nPoll Message ID: ${messageId}\n\nSave this message ID to track votes via webhook events.`;
+}
+
+/**
+ * Format status list
+ */
+export function formatStatuses(statuses: any[]): string {
+  if (statuses.length === 0) {
+    return "No statuses found.";
+  }
+
+  const sections = statuses.map((status, index) => {
+    const lines: string[] = [];
+    lines.push(`[Status ${index + 1}]`);
+    lines.push(`From: ${status.from || 'Unknown'}`);
+    if (status.text) lines.push(`Text: "${status.text}"`);
+    if (status.mediaUrl) lines.push(`Media: ${status.mediaUrl}`);
+    if (status.timestamp) lines.push(`Time: ${formatTimestamp(status.timestamp)}`);
+    return lines.join('\n');
+  });
+
+  return `Found ${statuses.length} status${statuses.length > 1 ? 'es' : ''}:\n\n${sections.join('\n\n')}`;
+}
+
+/**
+ * Format labels list
+ */
+export function formatLabels(labels: any[]): string {
+  if (labels.length === 0) {
+    return "No labels found.";
+  }
+
+  const sections = labels.map((label, index) => {
+    return `[${index + 1}] ${label.name || 'Unnamed'} (ID: ${label.id}) ${label.color ? `- Color: ${label.color}` : ''}`;
+  });
+
+  return `Found ${labels.length} label${labels.length > 1 ? 's' : ''}:\n${sections.join('\n')}`;
+}
+
+/**
+ * Format groups list
+ */
+export function formatGroups(groups: any[]): string {
+  if (groups.length === 0) {
+    return "No groups found.";
+  }
+
+  const sections = groups.map((group, index) => {
+    const lines: string[] = [];
+    lines.push(`[Group ${index + 1}]`);
+    lines.push(`ID: ${group.id}`);
+    lines.push(`Name: ${group.name || 'Unnamed Group'}`);
+    if (group.description) lines.push(`Description: ${truncate(group.description, 100)}`);
+    if (group.size !== undefined) lines.push(`Members: ${group.size}`);
+    return lines.join('\n');
+  });
+
+  return `Found ${groups.length} group${groups.length > 1 ? 's' : ''}:\n\n${sections.join('\n\n')}`;
+}
+
+/**
+ * Format contacts list
+ */
+export function formatContacts(contacts: any[]): string {
+  if (contacts.length === 0) {
+    return "No contacts found.";
+  }
+
+  const sections = contacts.map((contact, index) => {
+    const lines: string[] = [];
+    lines.push(`[Contact ${index + 1}]`);
+    lines.push(`ID: ${contact.id}`);
+    if (contact.name) lines.push(`Name: ${contact.name}`);
+    if (contact.pushname) lines.push(`Push Name: ${contact.pushname}`);
+    if (contact.number) lines.push(`Number: ${contact.number}`);
+    return lines.join('\n');
+  });
+
+  return `Found ${contacts.length} contact${contacts.length > 1 ? 's' : ''}:\n\n${sections.join('\n\n')}`;
+}
+
+/**
+ * Format simple success message
+ */
+export function formatSuccess(action: string, details?: string): string {
+  if (details) {
+    return `✓ ${action} completed successfully.\n${details}`;
+  }
+  return `✓ ${action} completed successfully.`;
+}
