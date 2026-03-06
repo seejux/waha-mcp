@@ -11,20 +11,8 @@ A Model Context Protocol (MCP) server that enables AI assistants to interact wit
 - **Chat Management**: Get overview of recent WhatsApp chats
 - **Message Operations**: Retrieve, send, and mark messages as read
 - **MCP Resources**: Access WhatsApp data as context-aware resources with caching
-- **MCP Integration**: Full compatibility with MCP clients
-- **Dual Mode**: Supports both local (stdio) and remote (HTTP) connections
+- **MCP Integration**: Full compatibility with MCP clients (stdio transport)
 
-## Quick Start
-
-**New users?** [QUICK_START.md](QUICK_START.md)
-
-**Remote HTTP setup?** [REMOTE_SETUP.md](REMOTE_SETUP.md)
-
-**Detailed usage?** [USAGE_GUIDE.md](USAGE_GUIDE.md)
-
-**MCP Resources?** [RESOURCES_GUIDE.md](RESOURCES_GUIDE.md)
-
-**Project specification?** [PROJECT_SPEC.md](PROJECT_SPEC.md)
 
 ## Installation
 
@@ -80,21 +68,11 @@ Use the inspector to:
 
 ### Run in production
 
-**Stdio mode** (for local MCP clients):
 ```bash
 npm start
 ```
 
-**HTTP mode** (for remote access):
-```bash
-npm run start:http
-```
-
-See [REMOTE_SETUP.md](REMOTE_SETUP.md) for HTTP mode documentation.
-
 ## Usage with Claude Desktop
-
-**For detailed setup instructions, see [CLAUDE_DESKTOP_SETUP.md](CLAUDE_DESKTOP_SETUP.md)**
 
 Add this to your Claude Desktop MCP configuration:
 
@@ -132,7 +110,7 @@ Add this to your Claude Desktop MCP configuration:
 }
 ```
 
-> **Note:** Windows users should use double backslashes (`\\`) in paths. See [CLAUDE_DESKTOP_SETUP.md](CLAUDE_DESKTOP_SETUP.md) for troubleshooting.
+> **Note:** Windows users should use double backslashes (`\\`) in paths.
 
 ## Available Tools
 
@@ -219,8 +197,6 @@ In addition to tools, the server exposes **MCP Resources** for context-aware dat
 
 Resources support query parameters for filtering and pagination. Data is cached for 5 minutes for performance.
 
-**See [RESOURCES_GUIDE.md](RESOURCES_GUIDE.md) for detailed documentation.**
-
 ## Project Structure
 
 ```
@@ -240,8 +216,7 @@ waha-mcp-server/
 ├── .env                      # Your configuration (not in git)
 ├── .env.example              # Configuration template
 ├── package.json
-├── tsconfig.json
-└── PROJECT_SPEC.md          # Full project specification
+└── tsconfig.json
 ```
 ## Chat ID Format
 
