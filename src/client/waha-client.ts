@@ -1338,9 +1338,12 @@ export class WAHAClient {
     const queryString = this.buildQueryString(queryParams);
     const endpoint = `/api/contacts/profile-picture${queryString}`;
 
-    return this.request<{ url: string }>(endpoint, {
+    const response = await this.request<{ profilePictureURL?: string; url?: string }>(endpoint, {
       method: "GET",
     });
+
+    // Handle both response formats: profilePictureURL (contacts) or url (chats)
+    return { url: response.profilePictureURL || response.url || '' };
   }
 
   /**
