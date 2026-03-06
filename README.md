@@ -2,6 +2,10 @@
 
 A Model Context Protocol (MCP) server that enables AI assistants to interact with WhatsApp through the WAHA (WhatsApp HTTP API) platform.
 
+<a href="https://glama.ai/mcp/servers/@seejux/waha-mcp">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@seejux/waha-mcp/badge" alt="WAHA Server MCP server" />
+</a>
+
 ## Features
 
 - **Chat Management**: Get overview of recent WhatsApp chats

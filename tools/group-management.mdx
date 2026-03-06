@@ -1,0 +1,336 @@
+---
+title: Group management
+description: Tools for creating and managing WhatsApp groups
+---
+
+# Group management
+
+Tools for creating groups, managing members, and configuring group settings.
+
+## Listing groups
+
+### waha_get_groups
+
+List all groups with filtering and pagination.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `sortBy` | string | No | Sort by `id` or `name` |
+| `sortOrder` | string | No | `asc` or `desc` |
+| `limit` | number | No | Max results (default: 100) |
+| `offset` | number | No | Pagination offset |
+| `exclude` | string[] | No | Fields to exclude (e.g., `participants`) |
+
+```json
+{
+  "sortBy": "name",
+  "sortOrder": "asc",
+  "limit": 50
+}
+```
+
+### waha_get_groups_count
+
+Get the total number of groups.
+
+```json
+{}
+```
+
+### waha_get_group_info
+
+Get detailed information about a specific group.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `groupId` | string | Yes | Group ID |
+
+```json
+{
+  "groupId": "123456789012345678@g.us"
+}
+```
+
+## Creating and leaving groups
+
+### waha_create_group
+
+Create a new WhatsApp group.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `name` | string | Yes | Group name |
+| `participants` | string | Yes | JSON array of participants |
+
+```json
+{
+  "name": "My New Group",
+  "participants": "[{\"id\": \"1234567890@c.us\"}, {\"id\": \"0987654321@c.us\"}]"
+}
+```
+
+### waha_leave_group
+
+Leave a group.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `groupId` | string | Yes | Group ID to leave |
+
+```json
+{
+  "groupId": "123456789012345678@g.us"
+}
+```
+
+## Group settings
+
+### waha_update_group_subject
+
+Change the group name.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `groupId` | string | Yes | Group ID |
+| `subject` | string | Yes | New group name |
+
+```json
+{
+  "groupId": "123456789012345678@g.us",
+  "subject": "New Group Name"
+}
+```
+
+### waha_update_group_description
+
+Update the group description.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `groupId` | string | Yes | Group ID |
+| `description` | string | Yes | New description |
+
+```json
+{
+  "groupId": "123456789012345678@g.us",
+  "description": "This is our team group for project discussions."
+}
+```
+
+### waha_set_group_messages_admin_only
+
+Control who can send messages. Requires admin privileges.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `groupId` | string | Yes | Group ID |
+| `adminsOnly` | boolean | Yes | `true` = only admins, `false` = all members |
+
+```json
+{
+  "groupId": "123456789012345678@g.us",
+  "adminsOnly": true
+}
+```
+
+### waha_set_group_info_admin_only
+
+Control who can edit group info. Requires admin privileges.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `groupId` | string | Yes | Group ID |
+| `adminsOnly` | boolean | Yes | `true` = only admins, `false` = all members |
+
+```json
+{
+  "groupId": "123456789012345678@g.us",
+  "adminsOnly": false
+}
+```
+
+## Group pictures
+
+### waha_get_group_picture
+
+Get the group profile picture URL.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `groupId` | string | Yes | Group ID |
+| `refresh` | boolean | No | Bypass cache (default: false) |
+
+```json
+{
+  "groupId": "123456789012345678@g.us"
+}
+```
+
+### waha_set_group_picture
+
+Set or update the group picture.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `groupId` | string | Yes | Group ID |
+| `fileUrl` | string | No* | URL of the image |
+| `fileData` | string | No* | Base64 encoded image |
+
+```json
+{
+  "groupId": "123456789012345678@g.us",
+  "fileUrl": "https://example.com/group-photo.jpg"
+}
+```
+
+### waha_delete_group_picture
+
+Remove the group profile picture.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `groupId` | string | Yes | Group ID |
+
+```json
+{
+  "groupId": "123456789012345678@g.us"
+}
+```
+
+## Member management
+
+### waha_get_group_participants
+
+List all members in a group.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `groupId` | string | Yes | Group ID |
+
+```json
+{
+  "groupId": "123456789012345678@g.us"
+}
+```
+
+### waha_add_group_participants
+
+Add members to a group. Requires admin privileges.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `groupId` | string | Yes | Group ID |
+| `participants` | string | Yes | JSON array of participants to add |
+
+```json
+{
+  "groupId": "123456789012345678@g.us",
+  "participants": "[{\"id\": \"1234567890@c.us\"}]"
+}
+```
+
+### waha_remove_group_participants
+
+Remove members from a group. Requires admin privileges.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `groupId` | string | Yes | Group ID |
+| `participants` | string | Yes | JSON array of participants to remove |
+
+```json
+{
+  "groupId": "123456789012345678@g.us",
+  "participants": "[{\"id\": \"1234567890@c.us\"}]"
+}
+```
+
+### waha_promote_group_admin
+
+Promote members to admin. Requires admin privileges.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `groupId` | string | Yes | Group ID |
+| `participants` | string | Yes | JSON array of participants to promote |
+
+```json
+{
+  "groupId": "123456789012345678@g.us",
+  "participants": "[{\"id\": \"1234567890@c.us\"}]"
+}
+```
+
+### waha_demote_group_admin
+
+Remove admin privileges. Requires admin privileges.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `groupId` | string | Yes | Group ID |
+| `participants` | string | Yes | JSON array of admins to demote |
+
+```json
+{
+  "groupId": "123456789012345678@g.us",
+  "participants": "[{\"id\": \"1234567890@c.us\"}]"
+}
+```
+
+## Invite links
+
+### waha_get_group_invite_code
+
+Get the group invite link.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `groupId` | string | Yes | Group ID |
+
+```json
+{
+  "groupId": "123456789012345678@g.us"
+}
+```
+
+### waha_revoke_group_invite_code
+
+Revoke the current invite link and generate a new one. Requires admin privileges.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `groupId` | string | Yes | Group ID |
+
+```json
+{
+  "groupId": "123456789012345678@g.us"
+}
+```
+
+### waha_join_group
+
+Join a group using an invite code or link.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `code` | string | Yes | Invite code or full URL |
+
+```json
+{
+  "code": "https://chat.whatsapp.com/ABC123xyz"
+}
+```
+
+### waha_get_group_join_info
+
+Get group information from an invite link without joining.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `code` | string | Yes | Invite code or full URL |
+
+```json
+{
+  "code": "https://chat.whatsapp.com/ABC123xyz"
+}
+```
