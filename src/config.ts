@@ -7,13 +7,6 @@ export interface WAHAConfig {
   wahaBaseUrl: string;
   wahaApiKey: string;
   wahaSession: string;
-  webhook: {
-    enabled: boolean;
-    port: number;
-    hmacKey?: string;
-    ngrokAuthToken?: string;
-    autoStart: boolean;
-  };
 }
 
 /**
@@ -42,24 +35,10 @@ function loadConfig(): WAHAConfig {
     ? wahaBaseUrl.slice(0, -1)
     : wahaBaseUrl;
 
-  // Load webhook configuration
-  const webhookEnabled = process.env.WEBHOOK_ENABLED === "true";
-  const webhookPort = parseInt(process.env.WEBHOOK_PORT || "3001", 10);
-  const webhookHmacKey = process.env.WEBHOOK_HMAC_KEY;
-  const ngrokAuthToken = process.env.NGROK_AUTHTOKEN;
-  const webhookAutoStart = process.env.WEBHOOK_AUTO_START !== "false"; // Default true
-
   return {
     wahaBaseUrl: normalizedBaseUrl,
     wahaApiKey,
     wahaSession,
-    webhook: {
-      enabled: webhookEnabled,
-      port: webhookPort,
-      hmacKey: webhookHmacKey,
-      ngrokAuthToken,
-      autoStart: webhookAutoStart,
-    },
   };
 }
 

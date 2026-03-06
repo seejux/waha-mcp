@@ -10,7 +10,21 @@ A Model Context Protocol (MCP) server that enables AI assistants to interact wit
 
 - **Chat Management**: Get overview of recent WhatsApp chats
 - **Message Operations**: Retrieve, send, and mark messages as read
-- **MCP Integration**: Full compatibility with MCP clients like Claude Desktop
+- **MCP Resources**: Access WhatsApp data as context-aware resources with caching
+- **MCP Integration**: Full compatibility with MCP clients
+- **Dual Mode**: Supports both local (stdio) and remote (HTTP) connections
+
+## Quick Start
+
+**New users?** [QUICK_START.md](QUICK_START.md)
+
+**Remote HTTP setup?** [REMOTE_SETUP.md](REMOTE_SETUP.md)
+
+**Detailed usage?** [USAGE_GUIDE.md](USAGE_GUIDE.md)
+
+**MCP Resources?** [RESOURCES_GUIDE.md](RESOURCES_GUIDE.md)
+
+**Project specification?** [PROJECT_SPEC.md](PROJECT_SPEC.md)
 
 ## Installation
 
@@ -59,20 +73,49 @@ This will:
 3. Open your browser automatically
 
 Use the inspector to:
-- Test all 4 tools interactively
+- Test all tools interactively
 - View tool schemas
 - See request/response data
 - Debug tool calls
 
 ### Run in production
+
+**Stdio mode** (for local MCP clients):
 ```bash
 npm start
 ```
 
+**HTTP mode** (for remote access):
+```bash
+npm run start:http
+```
+
+See [REMOTE_SETUP.md](REMOTE_SETUP.md) for HTTP mode documentation.
+
 ## Usage with Claude Desktop
+
+**For detailed setup instructions, see [CLAUDE_DESKTOP_SETUP.md](CLAUDE_DESKTOP_SETUP.md)**
 
 Add this to your Claude Desktop MCP configuration:
 
+**Windows:**
+```json
+{
+  "mcpServers": {
+    "waha": {
+      "command": "node",
+      "args": ["C:\\Users\\YourUsername\\path\\to\\waha\\dist\\index.js"],
+      "env": {
+        "WAHA_BASE_URL": "http://localhost:3000",
+        "WAHA_API_KEY": "your-api-key-here",
+        "WAHA_SESSION": "default"
+      }
+    }
+  }
+}
+```
+
+**Mac/Linux:**
 ```json
 {
   "mcpServers": {
@@ -89,72 +132,94 @@ Add this to your Claude Desktop MCP configuration:
 }
 ```
 
+> **Note:** Windows users should use double backslashes (`\\`) in paths. See [CLAUDE_DESKTOP_SETUP.md](CLAUDE_DESKTOP_SETUP.md) for troubleshooting.
+
 ## Available Tools
 
-### waha_get_chats
-Get overview of recent WhatsApp chats. Returns chat ID, name, last message preview, and unread count.
+### Chat Management
+| Tool | Description |
+|------|-------------|
+| `waha_get_chats` | Get overview of recent WhatsApp chats |
+| `waha_get_messages` | Get messages from a specific chat |
+| `waha_mark_chat_read` | Mark messages in a chat as read |
+| `waha_mark_chat_unread` | Mark a chat as unread |
+| `waha_clear_chat_messages` | Clear all messages from a chat (destructive) |
+| `waha_delete_chat` | Delete a chat completely (destructive) |
+| `waha_archive_chat` | Archive a chat |
+| `waha_unarchive_chat` | Unarchive a chat |
+| `waha_get_chat_picture` | Get the profile picture URL for a chat |
 
-**Parameters:**
-- `limit` (optional): Number of chats to retrieve (default: 10, max: 100)
-- `offset` (optional): Offset for pagination
-- `chatIds` (optional): Array of specific chat IDs to filter (format: `number@c.us`)
+### Messaging
+| Tool | Description |
+|------|-------------|
+| `waha_send_message` | Send a text message to a chat |
+| `waha_send_media` | Send images, videos, or documents |
+| `waha_send_audio` | Send audio/voice messages |
+| `waha_send_location` | Send location coordinates |
+| `waha_send_contact` | Send contact card(s) using vCard format |
+| `waha_edit_message` | Edit a sent message (own messages only) |
+| `waha_delete_message` | Delete a specific message (destructive) |
+| `waha_pin_message` | Pin a message in a chat |
+| `waha_unpin_message` | Unpin a message in a chat |
+| `waha_react_to_message` | Add or remove an emoji reaction |
+| `waha_star_message` | Star or unstar a message |
 
-**Example:**
-```json
-{
-  "limit": 10
-}
-```
+### Groups
+| Tool | Description |
+|------|-------------|
+| `waha_get_groups` | List all groups with filtering and pagination |
+| `waha_get_groups_count` | Get total number of groups |
+| `waha_get_group_info` | Get detailed info about a specific group |
+| `waha_get_group_picture` | Get group profile picture URL |
+| `waha_set_group_picture` | Set or update group profile picture |
+| `waha_delete_group_picture` | Remove group profile picture |
+| `waha_create_group` | Create a new WhatsApp group |
+| `waha_update_group_subject` | Change group name/subject |
+| `waha_update_group_description` | Update group description |
+| `waha_leave_group` | Leave a group |
+| `waha_get_group_participants` | List all members in a group |
+| `waha_add_group_participants` | Add member(s) to a group (admin required) |
+| `waha_remove_group_participants` | Remove member(s) from a group (admin required) |
+| `waha_promote_group_admin` | Promote participant(s) to admin (admin required) |
+| `waha_demote_group_admin` | Remove admin privileges (admin required) |
+| `waha_get_group_invite_code` | Get group invite link |
+| `waha_revoke_group_invite_code` | Revoke invite link and generate a new one (admin required) |
+| `waha_join_group` | Join a group using an invite code/link |
+| `waha_get_group_join_info` | Get group info from invite link without joining |
+| `waha_set_group_messages_admin_only` | Toggle admin-only messaging (admin required) |
+| `waha_set_group_info_admin_only` | Toggle admin-only group info editing (admin required) |
 
-### waha_get_messages
-Get messages from a specific WhatsApp chat. Returns message content, sender, timestamp, and status.
+### Contacts
+| Tool | Description |
+|------|-------------|
+| `waha_get_contact` | Get contact information by ID |
+| `waha_get_all_contacts` | List all contacts with pagination |
+| `waha_check_contact_exists` | Check if a phone number is registered on WhatsApp |
+| `waha_get_contact_about` | Get contact's about/status text |
+| `waha_get_contact_profile_picture` | Get contact's profile picture URL |
+| `waha_block_contact` | Block a contact |
+| `waha_unblock_contact` | Unblock a contact |
 
-**Parameters:**
-- `chatId` (required): Chat ID to get messages from (format: `number@c.us` for individual, `number@g.us` for group)
-- `limit` (optional): Number of messages to retrieve (default: 10, max: 100)
-- `offset` (optional): Offset for pagination
-- `downloadMedia` (optional): Download media files (default: false)
+### Presence
+| Tool | Description |
+|------|-------------|
+| `waha_get_presence` | Get online/offline/typing status for a chat |
+| `waha_subscribe_presence` | Subscribe to presence updates for a chat |
+| `waha_get_all_presence` | Get all subscribed presence information |
+| `waha_set_presence` | Set your own presence status (online, offline, typing, etc.) |
 
-**Example:**
-```json
-{
-  "chatId": "1234567890@c.us",
-  "limit": 10
-}
-```
+## MCP Resources
 
-### waha_send_message
-Send a text message to a WhatsApp chat. Returns message ID and delivery timestamp.
+In addition to tools, the server exposes **MCP Resources** for context-aware data access:
 
-**Parameters:**
-- `chatId` (required): Chat ID to send message to (format: `number@c.us`)
-- `text` (required): Message text to send
-- `replyTo` (optional): Message ID to reply to
-- `linkPreview` (optional): Enable link preview (default: true)
+### Available Resources
 
-**Example:**
-```json
-{
-  "chatId": "1234567890@c.us",
-  "text": "Hello from MCP!"
-}
-```
+- `waha://chats/overview` - Recent chats with last message previews
+- `waha://chat/{chatId}/messages` - Message history from a specific chat
 
-### waha_mark_chat_read
-Mark messages in a chat as read. Can specify number of recent messages or time range in days.
+Resources support query parameters for filtering and pagination. Data is cached for 5 minutes for performance.
 
-**Parameters:**
-- `chatId` (required): Chat ID to mark as read (format: `number@c.us`)
-- `messages` (optional): Number of recent messages to mark as read (default: 30)
-- `days` (optional): Mark messages from last N days as read (default: 7)
-
-**Example:**
-```json
-{
-  "chatId": "1234567890@c.us",
-  "messages": 30
-}
-```
+**See [RESOURCES_GUIDE.md](RESOURCES_GUIDE.md) for detailed documentation.**
 
 ## Project Structure
 
@@ -165,6 +230,11 @@ waha-mcp-server/
 │   ├── config.ts             # Configuration management
 │   ├── types/                # TypeScript type definitions
 │   ├── tools/                # MCP tool implementations
+│   ├── resources/            # MCP resource implementations
+│   │   ├── base/             # Base resource class
+│   │   ├── implementations/  # Concrete resources
+│   │   ├── cache/            # LRU caching layer
+│   │   └── manager/          # Resource registry
 │   └── client/               # WAHA API client
 ├── dist/                     # Built JavaScript output
 ├── .env                      # Your configuration (not in git)

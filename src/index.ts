@@ -15,9 +15,6 @@ import {
 } from "./tools/formatters.js";
 import { createResourceManager, ResourceManager } from "./resources/index.js";
 
-// Webhook types (imported conditionally below)
-type WebhookManager = any;
-
 /**
  * WAHA MCP Server
  * Provides Model Context Protocol interface to WAHA WhatsApp HTTP API
@@ -26,7 +23,6 @@ class WAHAMCPServer {
   private server: Server;
   private wahaClient: WAHAClient;
   private resourceManager: ResourceManager;
-  private webhookManager?: WebhookManager;
 
   constructor() {
     // Initialize WAHA API client
@@ -2686,11 +2682,6 @@ class WAHAMCPServer {
   private async cleanup(): Promise<void> {
     console.error("[WAHAMCPServer] Shutting down...");
 
-    // Stop webhook system if running
-    if (this.webhookManager) {
-      await this.webhookManager.stop();
-    }
-
     // Close MCP server
     await this.server.close();
 
@@ -2698,18 +2689,6 @@ class WAHAMCPServer {
   }
 
   async run(): Promise<void> {
-    // Start webhook system if configured (dynamic import to avoid loading ngrok when disabled)
-    if (config.webhook.enabled && config.webhook.autoStart) {
-      try {
-        const { createWebhookManager } = await import("./webhooks/index.js");
-        this.webhookManager = createWebhookManager(this.server, this.wahaClient, config.webhook);
-        await this.webhookManager.start();
-      } catch (error) {
-        console.error("[WAHAMCPServer] Failed to start webhook system:", error);
-        console.error("[WAHAMCPServer] Continuing without webhooks...");
-      }
-    }
-
     // Connect MCP server to stdio transport
     const transport = new StdioServerTransport();
     await this.server.connect(transport);

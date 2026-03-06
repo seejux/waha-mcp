@@ -245,53 +245,6 @@ export class WAHAClient {
   }
 
   /**
-   * Update session webhook configuration
-   * PUT /api/sessions/:session
-   */
-  async updateSessionWebhook(webhookConfig: {
-    url: string;
-    events: string[];
-    hmacKey?: string;
-  }): Promise<void> {
-    const body: any = {
-      config: {
-        webhooks: [
-          {
-            url: webhookConfig.url,
-            events: webhookConfig.events,
-          },
-        ],
-      },
-    };
-
-    // Add HMAC if provided
-    if (webhookConfig.hmacKey) {
-      body.config.webhooks[0].hmac = {
-        key: webhookConfig.hmacKey,
-      };
-      console.error(`[WAHAClient] HMAC key configured: ${webhookConfig.hmacKey.substring(0, 4)}...${webhookConfig.hmacKey.substring(webhookConfig.hmacKey.length - 4)} (length: ${webhookConfig.hmacKey.length})`);
-    } else {
-      console.error("[WAHAClient] No HMAC key provided");
-    }
-
-    const endpoint = `/api/sessions/${this.session}`;
-
-    console.error(`[WAHAClient] Sending webhook config to endpoint: ${endpoint}`);
-    console.error(`[WAHAClient] Webhook URL: ${body.config.webhooks[0].url}`);
-    console.error(`[WAHAClient] Webhook events: ${body.config.webhooks[0].events.join(", ")}`);
-    if (body.config.webhooks[0].hmac) {
-      console.error(`[WAHAClient] HMAC enabled: yes`);
-    }
-
-    await this.request<void>(endpoint, {
-      method: "PUT",
-      body: JSON.stringify(body),
-    });
-
-    console.error(`[WAHAClient] Webhook configured: ${webhookConfig.url}`);
-  }
-
-  /**
    * Delete a message from a chat
    * DELETE /api/:session/chats/:chatId/messages/:messageId
    */
